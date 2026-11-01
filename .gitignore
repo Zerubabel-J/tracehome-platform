@@ -1,0 +1,28 @@
+# Secrets and keys
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# Application
+node_modules/
+dist/
+build/
+.expo/
+__pycache__/
+.venv/
+.pytest_cache/
+
+# Editors and system files
+.DS_Store
+.idea/
+.vscode/
