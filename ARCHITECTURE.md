@@ -367,7 +367,7 @@ Run these only against your own system, and record the expected result, actual r
 ElastiCache, a bigger database, and only then split a service. Each step adds complexity, so
 wait for metrics to justify it.
 
-## Lessons from the Sydro reference diagram
+## Lessons from other systems
 
 Use it as a standard for layered presentation, not as a list of services. It's a video platform,
 while our hard problems are trust, tenants, and integrations.
