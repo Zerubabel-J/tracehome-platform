@@ -1,11 +1,12 @@
 # TraceHome
 
-An API-first property platform for selling and renting homes, starting in Addis Ababa and
-built on AWS. Web apps, partners, automation tools, CRMs, and AI assistants all connect
-through secure, versioned contracts.
+A trusted property platform for selling and renting homes, starting in Addis Ababa and built on
+AWS. Agencies publish verified listings, seekers find homes they can trust, and leads flow
+reliably into the tools agencies already use.
 
 **Team:** Getasil Desaleng, Seid Endris, Zerubabel Jember (Evangadi AWS, Group 9)
 **Hackathon:** 1-14 November 2026, 8 hours a day
+**Last plan update:** 2 November 2026
 **Presentation:** Saturday, 14 November 2026, on Zoom
 
 This file is the plan. [ARCHITECTURE.md](ARCHITECTURE.md) explains the design and the reasons
@@ -20,39 +21,69 @@ Close three months of AWS training with a system you can defend in any interview
 
 **Winning demo:**
 
-1. An AI client finds a home on the platform.
-2. The user confirms an inquiry.
-3. A signed webhook runs an n8n workflow.
+1. An agent publishes a listing, and an admin verifies it.
+2. A seeker browses for free, buys credits through a simulated payment, and spends one credit to
+   unlock the advertiser's contact.
+3. The unlock creates a lead, and a signed webhook runs an n8n workflow.
 4. The CRM updates and the agent is notified.
-5. We stop the n8n endpoint, show retries and the dead-letter queue, then replay the event
+5. After a reported viewing, the seeker reviews the listing and the advertiser separately.
+6. We stop the n8n endpoint, show retries and the dead-letter queue, then replay the event
    after recovery.
+7. We stop an API task and force a database failover under load, while showing the results.
 
 ## Scope
 
+The rule: build a smaller system, understand it deeply, break it on purpose, and prove what happens.
+
 ### Must ship
 
-- Agencies as isolated tenants, with sign-in and roles
-- Listings, search, photo upload, and inquiries
-- AI photo moderation with an admin review queue
-- Public API with keys, scopes, and rate limits
-- Signed webhooks with delivery logs and replay
-- Read-first MCP server, with one confirmed write tool
+**Core product**
+
+- Advertiser accounts for owners, brokers, and agencies, with verification levels
+- Agency members and roles
+- Listings with admin verification, expiry, and reconfirmation
+- Free browsing and search by sub-city, neighborhood, price, and type
+- Photo upload to S3 with admin review
+- Contact credits: simulated purchase, unlocks, and refunds for invalid listings
+- Viewing reports and text reviews, with separate listing and advertiser scores
+- Tenant isolation and safe credit spending, proven by automated tests
+
+**Production cloud architecture**
+
+- Separate `dev` and `prod`, built with Terraform
+- VPC across two AZs, ECS Fargate, ALB, and RDS Multi-AZ
+- S3, CloudFront, IAM, and Secrets Manager
+- CI/CD with automatic rollback
+- CloudWatch monitoring, alarms, and backups
+
+**One deep distributed systems path**
+
+- Transactional outbox, EventBridge, SQS, and a dead-letter queue
+- Signed webhooks, with retries, delivery records, and replay
 - n8n workflow into a CRM test account
-- Multi-AZ production environment, built entirely with Terraform
-- Automated deployment with rollback
-- Monitoring, alarms, security controls, and backups
-- Load test and failure drills, with saved results
 
-### Stretch goals, only if the must-ship list is done
+**Proof**
 
-- In-app AI assistant
-- EKS lab using the same container image
-- Region failover drill
-- Telegram or WhatsApp notifications
+- Load test, failure drills, and a database restore, with saved evidence
+
+### Stretch goals, in order, only when the must-ship list is done
+
+1. MCP server with one read tool, `search_listings`
+2. Rekognition photo flagging
+3. GuardDuty, Config, and WAF rule tuning
+4. Blue/green deployment
+5. EKS lab using the same container image
+6. Region recovery drill
 
 ### Not in this hackathon
 
-- Real payments or property transactions
+- Public partner API with API Gateway, and write tools for MCP
+- In-app AI assistant, WhatsApp, and Telegram
+
+- Real payment provider; credit purchases are simulated
+- Commission on rentals or sales
+- Voice feedback, planned for the first public release
+- Map and radius search
 - Official apps on the n8n, Make, or Zapier marketplaces
 - Publishing to Facebook, Instagram, LinkedIn, X, or TikTok
 - Real users' personal data; use made-up seed data
@@ -93,35 +124,53 @@ on application work; don't remove them from it.
 5. **Shut down what you start.** The last person out confirms nothing is left running.
 6. **Protect secrets.** No AWS keys, passwords, `.pem` files, or `.env` files in Git or chat.
 
-## 14-day schedule
+## Schedule
+
+Revised on 2 November. Day 1 produced the plan and the repository.
 
 | Day | Date | Goal | Done when |
 |---|---|---|---|
-| 1 | Sun 1 Nov | Kickoff: agree scope, budget, rotation; secure root account; set budgets; create repo | Budget alert email arrives |
-| 2 | Mon 2 Nov | Organization, `dev`, `prod`, `log-archive`, Identity Center, Terraform state, GitHub OIDC | Everyone signs in without long-lived keys |
-| 3 | Tue 3 Nov | VPC, security groups, app skeleton, tenants, Row-Level Security, Docker | Tenant isolation test passes locally |
-| 4 | Wed 4 Nov | **Buy the domain.** ECR, ECS, ALB, RDS, Route 53, ACM | Health check responds over HTTPS |
-| 5 | Thu 5 Nov | Cognito, listings, S3 uploads, CloudFront, web app | A signed-in user posts a listing with photos |
-| 6 | Fri 6 Nov | CI/CD with tests, image scanning, and blue/green deployment | A bad image rolls back automatically |
-| 7 | Sat 7 Nov | Moderation pipeline, outbox, EventBridge, SQS, dead-letter queues | A failed message reaches the DLQ and replays |
-| 8 | Sun 8 Nov | Signed webhooks, delivery logs, SSRF protection, n8n to CRM | An inquiry updates the CRM |
-| 9 | Mon 9 Nov | API Gateway, keys, quotas, MCP service; assistant if time allows | An AI client searches real listings |
-| 10 | Tue 10 Nov | Dashboards, alarms, WAF, GuardDuty, CloudTrail, Config, AWS Backup | A teammate fixes an alarm using a runbook |
-| 11 | Wed 11 Nov | Run `prod-ha`: load test, task failure, RDS failover, database restore | Results and screenshots are saved |
-| 12 | Thu 12 Nov | **Feature freeze.** Fix test findings, security review, stretch goals | No critical issues remain |
-| 13 | Fri 13 Nov | Final architecture diagram, slides, backup video, two full rehearsals | Anyone can present any section |
-| 14 | Sat 14 Nov | Start `prod-ha` 4 hours early, test, present, shut down | Presented, and nothing is left running |
+| 2 | Mon 2 Nov | Architecture review, defense exercise, secure root account, budgets, start interviews | Team agrees scope, and a budget alert arrives |
+| 3 | Tue 3 Nov | Business rules for advertisers, credits, and reviews; `dev` and `prod` accounts (half a day at most); Terraform state; OIDC; schema; Docker | Rules, schema, and module boundaries are reviewed |
+| 4 | Wed 4 Nov | **Buy the domain.** VPC, ECR, ECS, ALB, RDS in `dev`, tenant model | Health check responds over HTTPS |
+| 5 | Thu 5 Nov | Cognito, advertiser accounts, members, listings, Row-Level Security | Cross-tenant tests pass |
+| 6 | Fri 6 Nov | S3 upload, CloudFront, area search, web app | A signed-in agent posts a listing with photos |
+| 7 | Sat 7 Nov | CI/CD with tests, image scanning, and circuit breaker rollback | A bad image rolls back automatically |
+| 8 | Sun 8 Nov | Verification, reconfirmation, credit ledger, contact unlocks, outbox, EventBridge, SQS | Two simultaneous unlocks can't spend one credit twice, and a killed worker loses no events |
+| 9 | Mon 9 Nov | Viewing reports, reviews, signed webhooks, SSRF defenses, retries, DLQ, n8n to CRM | An unlock updates the CRM, replay works, and only eligible seekers can review |
+| 10 | Tue 10 Nov | Dashboards, alarms, WAF, CloudTrail, AWS Backup, runbooks | A teammate fixes an alarm using a runbook |
+| 11 | Wed 11 Nov | Deploy `prod`: load test, task failure, RDS failover, restore | Expected and actual results are saved |
+| 12 | Thu 12 Nov | **Feature freeze.** Fix findings, security review, stretch goals if ready | No critical issues remain |
+| 13 | Fri 13 Nov | Final diagram, slides, backup video, two full rehearsals | Anyone can present any section |
+| 14 | Sat 14 Nov | Start `prod` 4 hours early, test, present, shut down | Presented, and nothing is left running |
+
+### Architecture before implementation
+
+For each major feature: understand the problem, sketch it without AWS, compare two options, map it to
+AWS, build it, break it, then update [ARCHITECTURE.md](ARCHITECTURE.md).
+
+### Day 2 architecture review
+
+Each member first answers these alone, without AI, then you compare answers:
+
+1. Why ECS Fargate instead of EC2 or Lambda for TraceHome?
+2. Why PostgreSQL, and what would justify adding DynamoDB?
+3. How exactly does TraceHome keep operating when its primary AZ fails?
+
+Then decide together: Who is the primary customer? Can a user belong to several agencies? What is
+genuinely better than the current alternatives? What happens if a webhook consumer is down for six
+hours? Which decisions would be expensive to reverse?
 
 ### If you fall behind
 
-Cut in this order: stretch goals, map search, Config and Security Hub depth, blue/green
-(use rolling with rollback), MCP write tool.
+Drop stretch goals first. Then let admins handle credit refunds manually, postpone advertiser
+replies to reviews, reduce to one `prod` load test, and use a single test CRM action.
 
 Never cut budgets, tenant isolation, webhook signing, security basics, backups, or the demo path.
 
 ## Start here today
 
-1. Agree the scope, rotation, and budget as a team.
+1. Run the Day 2 architecture review, and agree the scope, rotation, and budget.
 2. Turn on MFA for the root user of QedamawiLabs.
 3. Create budget alerts at $10, $20, and $25, and turn on Cost Anomaly Detection.
 4. Create an admin user, and stop using root.
@@ -134,25 +183,25 @@ correct profile, or you could deploy to the wrong account.
 
 ## Budget
 
-AWS Credits showed $0 on 1 November, so every charge is real money. Costs are estimates, so check
-them in the AWS Pricing Calculator, and use Cost Explorer to track real spending.
+AWS Credits showed $0 on 1 November, so every charge is real money. These are rough estimates that
+leave out data transfer and some logging. **On day 2, rebuild them in the AWS Pricing Calculator**
+using your actual Region, resource sizes, and running hours, then track real spending in Cost Explorer.
 
 | Item | Estimate |
 |---|---|
 | `dev`: 120 hours at about $0.07 an hour | $8 |
-| `prod-ha`: 30 hours at about $0.25 an hour | $8 |
-| Bedrock and Rekognition | $3 |
+| `prod`: 30 hours at about $0.25 an hour | $8 |
 | Security services, keys, secrets, logs, DNS | $4 |
-| API Gateway, MCP service, webhooks | $3 |
-| **Must-ship total** | **$26** |
-| Stretch: EKS lab and Region failover drill | $5 |
-| **Total with stretch goals** | **$31** |
+| Queues, events, and storage | $1 |
+| **Must-ship total** | **$21** |
+| Stretch goals | $6 |
+| **Total with stretch goals** | **$27** |
 
-**Decision needed on day 1:** the must-ship plan fits within $30, but with very little margin.
-Each member adding $20 would make about $70, which covers the stretch goals and mistakes.
+**Decision needed today:** this leaves little margin, and one forgotten environment could use it up.
+Each member adding $20 would make about $70.
 
-Left running all month, `prod-ha` would cost about $180. So environments run only when you're
-using them. The domain is separate, at about $15 a year.
+The biggest cost risk is forgetting to shut something down. Left running all month, `prod` would cost
+about $180. The domain is separate, at about $15 a year.
 
 ## Presentation plan
 
@@ -173,17 +222,17 @@ using them. The domain is separate, at about $15 a year.
 | 3-4 | ALB, scaling, security groups | EC2 pricing, EBS, EFS, AMIs, placement groups |
 | 5 | RDS Multi-AZ, Route 53 | Aurora, routing policies, ElastiCache |
 | 6-7 | S3, CloudFront | Storage classes, Snow family, FSx, Storage Gateway, Global Accelerator |
-| 8 | SQS, EventBridge, Lambda, ECS | Kinesis, Amazon MQ, EKS details |
-| 9 | Rekognition | Athena, Redshift, OpenSearch, EMR, SageMaker |
-| 10 | CloudWatch, CloudTrail, Config, Backup, DynamoDB | DMS, migration tools |
+| 8 | SQS, EventBridge, ECS | Lambda, Kinesis, Amazon MQ, EKS details |
+| 9 | None required; Rekognition is a stretch goal | Athena, Redshift, OpenSearch, EMR, SageMaker |
+| 10 | CloudWatch, CloudTrail, AWS Backup | Config, DynamoDB, DMS, migration tools |
 | 11 | VPC, NAT, endpoints | Peering, Transit Gateway, VPN, Direct Connect |
-| 12 | KMS, Secrets Manager, GuardDuty, API Gateway, CloudFormation | Beanstalk, Batch, Trusted Advisor |
+| 12 | Encryption, Secrets Manager, CloudFormation | KMS details, GuardDuty, API Gateway, Beanstalk, Batch, Trusted Advisor |
 
 Exam domains: Secure 30%, Resilient 26%, High-Performing 24%, Cost-Optimized 20%. Always study
 from the current official exam guide.
 
 ## After the hackathon
 
-Finish any stretch goals, then Telegram and WhatsApp, a native HubSpot or GoHighLevel connector,
-official automation apps, and social publishing. Each provider has its own approval and terms, so
+Finish any stretch goals, then a public partner API, MCP write tools, Telegram and WhatsApp, a native
+HubSpot or GoHighLevel connector, official automation apps, and social publishing. Each provider has its own approval and terms, so
 check those first.

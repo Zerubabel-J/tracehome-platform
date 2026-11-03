@@ -26,3 +26,6 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+
+# Review notes, not project documents
+text.txt
