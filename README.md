@@ -15,7 +15,7 @@ it changes as we learn.
 
 | Document | Purpose |
 |---|---|
-| [README.md](README.md) | What TraceHome is, how we work, and what we've agreed |
+| [README.md](README.md) | What TraceHome is, how we work, and the starting ideas to discuss |
 | [REQUIREMENTS.md](REQUIREMENTS.md) | Problem, users, journeys, business rules, and quality requirements |
 
 ## The idea in one paragraph
@@ -52,24 +52,25 @@ flowchart LR
 5. **Everyone understands everything.** No part of TraceHome belongs to only one person.
 6. **Use AI as a challenger.** Ask it to question our thinking, not to make our decisions.
 
-## What we've agreed so far
+## Starting ideas to discuss
 
-These are business decisions, and they can change if evidence says so.
+Nothing is agreed yet. These are Zerubabel's initial ideas, to open the first team discussion.
+Challenge them, improve them, or replace them. Mark each one **Agreed** only after the team decides.
 
-| Topic | Decision | Reason |
-|---|---|---|
-| Advertisers | Individual owners, independent brokers, and registered agencies | All three advertise homes today |
-| Trust | Each advertiser has a verification level that seekers can see | Seekers need to know whom to trust |
-| Browsing | Free for everyone | People should see value before paying |
-| Seeker payment | Buy credits; one credit unlocks one listing's advertiser contact | Pay only when seriously interested |
-| Refunds | Credit returned for unavailable, fraudulent, duplicated, or unreachable listings | Seekers shouldn't pay for bad information |
-| Review eligibility | Only after unlocking a contact and reporting a viewing | Reviews must come from genuine interactions |
-| Review content | Listing accuracy and advertiser behavior are rated separately | One bad listing shouldn't define a whole advertiser |
-| Voice feedback | Wanted, but not in the first version | Adds consent, privacy, and moderation work |
-| Commission | Not now | We can't verify deals that happen off the platform |
-| Environment | One development environment only | Keep cost and complexity low while we learn |
+| Topic | Idea | Reasoning | Status |
+|---|---|---|---|
+| Advertisers | Individual owners, independent brokers, and registered agencies | All three advertise homes today | To discuss |
+| Trust | Each advertiser has a verification level that seekers can see | Seekers need to know whom to trust | To discuss |
+| Browsing | Free for everyone | People should see value before paying | To discuss |
+| Seeker payment | Buy credits; one credit unlocks one listing's advertiser contact | Pay only when seriously interested | To discuss |
+| Refunds | Credit returned for unavailable, fraudulent, duplicated, or unreachable listings | Seekers shouldn't pay for bad information | To discuss |
+| Review eligibility | Only after unlocking a contact and reporting a viewing | Reviews must come from genuine interactions | To discuss |
+| Review content | Listing accuracy and advertiser behavior are rated separately | One bad listing shouldn't define a whole advertiser | To discuss |
+| Voice feedback | Wanted, but not in the first version | Adds consent, privacy, and moderation work | To discuss |
+| Commission | Not now | We can't verify deals that happen off the platform | To discuss |
+| Environment | One development environment only | Keep cost and complexity low while we learn | To discuss |
 
-## Not part of TraceHome for now
+## Suggested out of scope, to discuss
 
 - Taking part in property payments, contracts, or legal transfer
 - Real payment processing; credit purchases will be simulated until we've checked the rules

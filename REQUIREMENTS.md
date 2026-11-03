@@ -73,7 +73,7 @@ pays. If seekers can easily find the same contacts elsewhere, they won't pay.
 
 ## 4. Business model
 
-### Agreed
+### Initial ideas, to discuss
 
 - Browsing is free.
 - Seekers buy credit packages, and one credit unlocks one listing's advertiser contact.
@@ -182,23 +182,25 @@ flowchart TD
 
 ## 6. Business rules
 
+None of these rules is agreed yet. Change a status to **Agreed** only after the team decides.
+
 | Area | Rule | Status |
 |---|---|---|
-| Verification | Every advertiser has a visible verification level | Agreed |
-| Verification | Brokers need more checks than owners and agencies | Agreed; checks not defined |
-| Listings | A listing must be approved before it's public | Agreed |
-| Listings | Listings expire unless reconfirmed | Agreed; period open |
-| Listings | Contact details mustn't appear in the listing itself | Proposed |
-| Credits | One credit per listing contact, no repeat charge | Agreed |
-| Credits | A credit can never be spent twice, or lost | Agreed |
-| Credits | Every purchase, spend, and refund is permanently recorded | Proposed |
-| Reviews | Only after an unlock and a reported viewing | Agreed |
-| Reviews | Listing accuracy and advertiser behavior rated separately | Agreed |
-| Reviews | Advertisers can respond and dispute | Agreed |
-| Reviews | Overall rating shown only after enough reviews | Agreed; number open |
-| Reviews | Abusive or defamatory reviews are moderated | Agreed |
-| Privacy | Contact details are shown only to seekers who unlocked them | Proposed |
-| Leads | Advertisers can receive leads in their own tools | Proposed |
+| Verification | Every advertiser has a visible verification level | To discuss |
+| Verification | Brokers need more checks than owners and agencies | To discuss; checks not defined |
+| Listings | A listing must be approved before it's public | To discuss |
+| Listings | Listings expire unless reconfirmed | To discuss; period open |
+| Listings | Contact details mustn't appear in the listing itself | To discuss |
+| Credits | One credit per listing contact, no repeat charge | To discuss |
+| Credits | A credit can never be spent twice, or lost | To discuss |
+| Credits | Every purchase, spend, and refund is permanently recorded | To discuss |
+| Reviews | Only after an unlock and a reported viewing | To discuss |
+| Reviews | Listing accuracy and advertiser behavior rated separately | To discuss |
+| Reviews | Advertisers can respond and dispute | To discuss |
+| Reviews | Overall rating shown only after enough reviews | To discuss; number open |
+| Reviews | Abusive or defamatory reviews are moderated | To discuss |
+| Privacy | Contact details are shown only to seekers who unlocked them | To discuss |
+| Leads | Advertisers can receive leads in their own tools | To discuss |
 
 ## 7. Domain model
 
@@ -240,7 +242,7 @@ erDiagram
 
 ## 8. Functional requirements
 
-| Area | Requirement | Version |
+| Area | Requirement | Suggested version |
 |---|---|---|
 | Accounts | Seekers and advertisers can register and sign in | First |
 | Advertisers | Advertisers choose a type and submit verification details | First |
@@ -264,7 +266,8 @@ erDiagram
 
 ## 9. Quality requirements
 
-These describe how well TraceHome must work. Numbers marked "proposed" need team agreement.
+These describe how well TraceHome must work. All of them, including the proposed numbers, are
+to discuss.
 
 | Quality | Requirement | How we'd check it |
 |---|---|---|
