@@ -455,26 +455,36 @@ An **invariant** is a rule that must be true at every moment, no matter how many
 once, and even if something crashes halfway. Invariants decide which actions must happen as one
 all-or-nothing step, and that later shapes the architecture.
 
-Draft list to discuss. For each one, decide whether it must be true **instantly**, or whether
-it's fine to become true **within seconds or minutes**.
+Agreed on 6 November. **Instantly** means the rule is checked and changed in one
+all-or-nothing step. **Eventually** means it may take seconds or minutes, but must never be lost.
 
-| # | Invariant | Instantly or eventually? |
-|---|---|---|
-| 1 | A seeker can't spend more credits than they have | To discuss |
-| 2 | A credit is never spent twice, even when a request is retried | To discuss |
-| 3 | A seeker never pays twice to unlock the same listing | To discuss |
-| 4 | A seeker's balance always equals the sum of their ledger entries | To discuss |
-| 5 | An expired bonus credit can't be spent | To discuss |
-| 6 | Contact details are visible only to seekers who unlocked them | To discuss |
-| 7 | An advertiser never has more active listings or agents than their plan allows | To discuss |
-| 8 | Only approved listings appear in search | To discuss |
-| 9 | A broker's listing is public only while the owner's approval is valid | To discuss |
-| 10 | A review exists only after an unlock and a reported viewing | To discuss |
-| 11 | One seeker leaves at most one review per unlock | To discuss |
-| 12 | An advertiser never sees another advertiser's private data | To discuss |
-| 13 | Every unlock produces a lead for the advertiser | To discuss |
-| 14 | Every automated or human decision is recorded, and the record can't be changed | To discuss |
-| 15 | A removed agent loses access immediately | To discuss |
+| # | Invariant | Proposed | Reason |
+|---|---|---|---|
+| 1 | A seeker can't spend more credits than they have | Instantly | Even a short gap lets two requests both succeed |
+| 2 | A credit is never spent twice, even when a request is retried | Instantly | A retry must return the first result, not charge again |
+| 3 | A seeker never pays twice to unlock the same listing | Instantly | Same reason as rule 2 |
+| 4 | A seeker's balance always equals the sum of their ledger entries | Instantly | The balance and its ledger entry change together |
+| 5 | An expired bonus credit can't be spent | Instantly, when spending | Checked at the moment of use; the cleanup job can run later |
+| 6 | Contact details are visible only to seekers who unlocked them | Instantly | A leaked number can't be taken back |
+| 7 | An advertiser never has more active listings or agents than their plan allows | Instantly, when publishing | After a downgrade, a 7-day grace period applies on purpose |
+| 8 | Only approved listings appear in search | Eventually for appearing; removal within 1 minute | A late appearance harms nobody; a fraudulent listing must vanish fast |
+| 9 | A broker's listing is public only while the owner's approval is valid | Quickly in search; instantly when unlocking | Same pattern as rule 8 |
+| 10 | A review exists only after an unlock and a reported viewing | Instantly | Checked when the review is created |
+| 11 | One seeker leaves at most one review per unlock | Instantly | Stops duplicate reviews |
+| 12 | An advertiser never sees another advertiser's private data | Instantly | Any leak is a serious breach |
+| 13 | Every unlock produces a lead for the advertiser | Eventually, but guaranteed | A short delay is fine; losing a lead is not |
+| 14 | Every automated or human decision is recorded, and the record can't be changed | Instantly for the record; eventually for archiving | A decision without a record can't be audited |
+| 15 | A removed agent loses access immediately | Within 5 minutes | Agreed limit for signed-in sessions |
+
+### Three principles from this list
+
+1. **Money and permissions need instant rules.** Credits, unlocks, reviews, and access must be
+   checked and changed together in one place.
+2. **Lists and copies can lag, but actions can't.** Search results and cached pages may be slightly
+   out of date. But when a seeker acts, such as unlocking a contact, the system checks the
+   up-to-date record.
+3. **Eventually still means guaranteed.** Leads, notifications, and archiving can wait, but they
+   must never be lost.
 
 ## 7. Domain model
 
@@ -548,28 +558,65 @@ erDiagram
 
 ## 9. Quality requirements
 
-These describe how well TraceHome must work. All of them, including the proposed numbers, are
-to discuss.
+Proposed, to discuss. Different parts of TraceHome need different levels of quality. Treating
+everything as equally critical is expensive and hides what really matters.
 
-| Quality | Requirement | How we'd check it |
+### Priorities
+
+| Rank | Quality | Why it ranks here |
 |---|---|---|
-| Correctness | A credit is never spent twice or lost, even with retries or crashes | Simultaneous and repeated requests |
-| Reliability | A paid unlock always produces a lead for the advertiser, even if a connected tool is down | Make the tool unavailable, then recover |
-| Isolation | One advertiser can never see another advertiser's private data | Try to access it as another advertiser |
-| Privacy | Contact details reach only seekers who unlocked them | Access tests |
-| Availability | Browsing works for most of the time; proposed 99.9% | Measure over time |
-| Speed | Search feels instant; proposed 95% under 300 ms | Load testing |
-| Recovery | Data can be restored after mistakes; targets to agree | Practice a restore |
-| Auditability | We can explain every credit, verification, and moderation decision | Review records |
-| Security | Access is limited to what each role needs | Role-based tests |
-| Network | Works on slow mobile connections | Test on throttled networks |
-| Cost | Runs within a small student budget | Track spending |
+| 1 | Correctness of money and permissions | A wrong charge or a leaked contact destroys trust and can't be undone |
+| 2 | Security and privacy | Personal data and verification documents are sensitive |
+| 3 | Availability of browsing | Seekers leave if they can't browse |
+| 4 | Durability of leads and records | Paid leads and decisions must never be lost |
+| 5 | Speed on mobile networks | Most seekers use phones, often on slow connections |
+| 6 | Cost | Small budget; pay for what's used |
 
-### Questions for the team
+When two qualities conflict, the higher rank wins. For example, when the system can't confirm a
+credit balance, it refuses the unlock rather than risk spending a credit twice.
 
-- Which quality matters most for TraceHome, and which can we relax?
-- What happens to trust if a seeker pays and receives no contact?
-- How much data could we lose before someone loses money?
+### Targets by part of the system
+
+| Part | Availability target | Speed target | Data loss allowed |
+|---|---|---|---|
+| Browsing and search | 99.9%, about 43 minutes of downtime a month | Search results in under 300 ms for 95% of requests; first page under 3 seconds on a slow mobile network | Not applicable; it shows copies |
+| Unlocking and credits | 99.5% | Under 1 second for 95% of requests | None for confirmed transactions |
+| Advertiser workspace | 99.5% | Under 1 second for 95% of requests | Up to 5 minutes, recovered from backup |
+| Leads to external tools | Delivered within 1 minute normally; delayed during outages | Not applicable | None |
+| AI checks and review cases | Delays are acceptable; cases wait in the queue | Clear cases decided within 5 minutes | None |
+| Verification documents and records | Rarely read | Retrieval within hours is acceptable for old documents | None |
+
+### Load
+
+| Assumption | Value |
+|---|---|
+| Daily active users at a successful launch | 5,000 |
+| Normal load | About 1 to 2 requests a second |
+| Peak load | About 12 requests a second |
+| Sudden spike, such as a viral Telegram post | 10 times peak for an hour |
+| Active listings | 20,000 |
+| Photos | About 10 per listing |
+
+These numbers are estimates. Test them against interviews and real usage.
+
+### Recovery
+
+| Event | Expected behavior | Recovery target |
+|---|---|---|
+| One server or process fails | Others take over; users barely notice | Automatic, within a minute |
+| One data center in the Region fails | System keeps running in another | Automatic, within minutes |
+| Data deleted by mistake | Restore from backup | Within 1 hour, losing at most 5 minutes of data |
+| A whole Region fails | To decide: accept downtime, or build recovery in a second Region | To decide |
+
+### Other qualities
+
+| Quality | Requirement |
+|---|---|
+| Auditability | Every credit change, verification, and moderation decision can be explained |
+| Security | Each role sees and does only what it needs |
+| Abuse resistance | Scraping, fake accounts, and review attacks are limited and detected |
+| Observability | We notice problems, such as lost leads or growing review queues, before users report them |
+| Cost | Runs within a small budget, using the minimum resources when idle |
 
 ## 10. Constraints and assumptions
 
@@ -587,19 +634,25 @@ accept verification; addresses use sub-city and neighborhood more than street na
 
 ## 11. What could go wrong
 
-Think about each of these before choosing any technology.
+Proposed behavior, to discuss. The goal is graceful degradation: when one part fails, the rest
+keeps working, and the most important rules still hold.
 
-- A seeker pays, but the contact details are wrong or the advertiser never answers.
-- Two requests try to spend the last credit at the same moment.
-- An advertiser puts a phone number in a photo to avoid credits.
-- A competitor posts fake negative reviews.
-- An agency's former agent still has access.
-- An advertiser's connected tool is offline for a day.
-- Someone uploads harmful or stolen photos.
-- Data is accidentally deleted.
-- Usage suddenly grows tenfold.
+| Failure | What users experience | What must stay true |
+|---|---|---|
+| Main database unavailable | Browsing still works from copies; unlocks and changes are refused with a clear message | No credit is lost or spent twice |
+| Search unavailable | Simple browsing by area still works, or a clear message appears | Unlocks still check the up-to-date record |
+| AI check service unavailable | Checks wait in a queue; nothing is approved automatically | No fraudster is approved during the outage |
+| Advertiser's CRM offline for a day | Leads appear in TraceHome, and are delivered once the CRM returns | No lead is lost |
+| Notifications fail | Delayed reminders and alerts | They're retried, and failures are visible |
+| Viral traffic spike | Browsing slows slightly but works | Unlocks stay correct |
+| Scraping attempt | Requests are limited, and credits block mass contact access | Advertisers' numbers stay protected |
+| Data deleted by mistake | Short outage for the affected data | Restored with at most 5 minutes lost |
+| Two requests spend the last credit | One succeeds, one is refused | Balance is never negative |
+| Harmful or stolen photos uploaded | Not visible until checked | Nothing harmful is shown publicly |
+| Competitor posts fake reviews | Reviews need an unlock and a reported viewing; patterns are flagged | Advertisers can dispute |
+| A removed agent is still signed in | Loses access within 5 minutes | No private data is accessed after that |
 
-For each one, ask: How likely is it? How bad is it? How would we notice? What should happen?
+For each failure: How likely is it? How bad is it? How would we notice? Who responds?
 
 ## 12. From requirements to architecture
 
