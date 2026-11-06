@@ -73,6 +73,20 @@ pays. If seekers can easily find the same contacts elsewhere, they won't pay.
 
 ## 4. Business model
 
+### Decided
+
+- Free for both sides at launch, with bonus credits for seekers.
+- Contact unlocks use credits from day one, even while free.
+- Advertisers will later pay a monthly plan, limited by listings and agents.
+- Purchased credits never expire.
+- Bonus credits expire after 3 months, and are spent before purchased credits.
+- Downgrading pauses listings above the new limit. Nothing is deleted.
+- Individual owners get a permanent free plan, with up to 4 active listings.
+- Clear hidden contact details send the listing back to the advertiser with the text highlighted.
+  Unclear cases go to a moderator, and repeat offenders get an account review.
+- Refunds follow precise rules, and doubtful cases go to a person.
+- Contact details hidden in listings are detected and handled.
+
 ### Initial ideas, to discuss
 
 - Browsing is free.
@@ -86,11 +100,61 @@ pays. If seekers can easily find the same contacts elsewhere, they won't pay.
 | Question | Options to consider |
 |---|---|
 | Package sizes and prices | To be learned from interviews |
-| Do credits expire? | Never, after months, or after a year |
-| What do owners pay? | Free, pay per listing, or a small fee |
-| What do brokers and agencies pay? | Subscription tiers, by number of listings or agents |
-| Who decides refunds? | Automatic for clear cases, a moderator for others |
-| How do we stop advertisers bypassing credits? | Detect contact details in listings, warnings, penalties |
+| Which listings are paused on a downgrade? | The advertiser chooses; otherwise the oldest are paused first |
+| What happens when a plan payment fails? | Grace period, then features limited |
+
+### Plans and limits
+
+Free launch access is modelled as a plan, a "launch plan" with generous limits. When charging
+starts, only the plans change, not the system.
+
+| Plan concept | Meaning |
+|---|---|
+| Plan | A named package, such as Free, Starter, or Agency |
+| Limits | Maximum active listings and agents |
+| Subscription | Which plan an advertiser has, and its status |
+| Entitlement check | Before publishing a listing or adding an agent, confirm the plan allows it |
+
+### Credit lots
+
+Because bonus credits expire and purchased ones don't, a balance is not just a single number. Each
+grant or purchase is a **lot** with its own amount, type, and expiry date.
+
+| Example lot | Amount | Expires |
+|---|---|---|
+| Welcome bonus, 5 Nov | 5 | 5 Feb |
+| Purchase, 20 Nov | 10 | Never |
+
+- Spending uses the bonus lot that expires soonest, then purchased lots.
+- Seekers are reminded before bonus credits expire.
+- Expiry is recorded in the ledger like any other change, so the history always adds up.
+
+### Downgrades
+
+| Rule | Detail |
+|---|---|
+| Who chooses | The advertiser picks which listings stay active; if they don't, the oldest are paused first |
+| What seekers see | Paused listings disappear from search |
+| Earlier unlocks | Seekers who already unlocked a paused listing keep access to its contact |
+| Grace period | Proposed: 7 days' notice before pausing starts |
+| Upgrading again | Paused listings can be reactivated, but must be reconfirmed as available |
+
+### Free owner plan
+
+Brokers might register as owners to avoid paying. The limit of 4 active listings, plus
+ownership checks, makes that harder.
+
+### Proposed refund rules
+
+| Situation | Proposed handling |
+|---|---|
+| Advertiser marks the listing unavailable within 24 hours of an unlock | Automatic refund |
+| Moderator removes the listing as fraudulent or duplicated | Automatic refund for everyone who unlocked it |
+| Seeker reports no response, and the advertiser doesn't answer TraceHome within 48 hours | Automatic refund |
+| Seeker reports wrong contact details | A person reviews it |
+| A seeker requests unusually many refunds | A person reviews it |
+
+The time limits are proposals to discuss.
 
 ## 5. Key journeys
 
@@ -180,6 +244,47 @@ flowchart TD
 - What happens to unlocked contacts when a listing is removed?
 - Should advertisers see who unlocked their contact?
 
+## 5a. Review cases
+
+The same pattern appears again and again: **automate clear cases, and send doubtful ones to a
+person.**
+
+| Case type | Created when |
+|---|---|
+| Identity check | Automated identity check isn't confident |
+| Licence check | An agency submits a licence |
+| Ownership check | Ownership documents are submitted |
+| Refund | A refund doesn't match a clear rule |
+| Hidden contact details | Detection isn't sure, or the advertiser appeals |
+| Review dispute | An advertiser disputes a review |
+| Report | Someone reports a listing or advertiser |
+
+**Proposed:** one shared review system for all case types, not a separate one for each. Every case
+has a type, priority, status, assigned moderator, waiting time, and decision record.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Open: Automation isn't sure
+    Open --> InReview: Moderator picks it up
+    InReview --> Decided: Moderator decides
+    InReview --> WaitingForInfo: More information needed
+    WaitingForInfo --> InReview: Information received
+    Decided --> Appealed: Affected person appeals
+    Appealed --> InReview: Reopened
+    Decided --> [*]
+```
+
+### What the AI checks must provide
+
+| Requirement | Reason |
+|---|---|
+| A confidence level with every result | Decides between approving automatically and sending to a person |
+| A reason a person can understand | Moderators and advertisers must know why |
+| A record of every automated decision | Audits, appeals, and measuring accuracy |
+| A person can overrule any automated decision | Automation will make mistakes |
+| Accuracy measured against people's decisions | Shows whether the thresholds are right |
+| Checks run in the background | People shouldn't wait on a screen while checks run |
+
 ## 6. Business rules
 
 None of these rules is agreed yet. Change a status to **Agreed** only after the team decides.
@@ -194,6 +299,10 @@ None of these rules is agreed yet. Change a status to **Agreed** only after the 
 | Credits | One credit per listing contact, no repeat charge | To discuss |
 | Credits | A credit can never be spent twice, or lost | To discuss |
 | Credits | Every purchase, spend, and refund is permanently recorded | To discuss |
+| Credits | Purchased credits never expire | Agreed |
+| Plans | Publishing listings and adding agents is limited by the advertiser's plan | Agreed |
+| Refunds | Clear cases are automatic; doubtful cases go to a person | Agreed |
+| Listings | Hidden contact details in text or photos are detected | Agreed |
 | Reviews | Only after an unlock and a reported viewing | To discuss |
 | Reviews | Listing accuracy and advertiser behavior rated separately | To discuss |
 | Reviews | Advertisers can respond and dispute | To discuss |
@@ -201,6 +310,171 @@ None of these rules is agreed yet. Change a status to **Agreed** only after the 
 | Reviews | Abusive or defamatory reviews are moderated | To discuss |
 | Privacy | Contact details are shown only to seekers who unlocked them | To discuss |
 | Leads | Advertisers can receive leads in their own tools | To discuss |
+
+## 6a. Trust and verification
+
+Status: the four trust levels, automation with human review, and broker approval are decided.
+Everything else in this section is a proposal to discuss.
+
+### Two kinds of trust
+
+The trust ladder mixes two different things. **Who** the advertiser is belongs to the account.
+**Whether they may advertise this home** belongs to each listing. An agency can be fully licensed
+and still post a listing it has no right to advertise.
+
+| Applies to | Level | What's checked | Who checks it |
+|---|---|---|---|
+| Advertiser | Phone confirmed | The advertiser controls the phone number | Automated |
+| Advertiser | Identity checked | The person is who they claim to be | Automated where possible, a person when unsure |
+| Advertiser | Licensed agency | A valid business or brokerage licence | A person, unless an official online check exists |
+| Listing | Advertising approved | The owner allowed this broker to advertise this home | The owner confirms through TraceHome |
+| Listing | Ownership proven | The advertiser, or the owner they act for, owns the home | A person reviews ownership documents |
+
+**Proposed:** show seekers both badges, the advertiser's level and the listing's level, with the
+date each check was done.
+
+### Automation with human review
+
+```mermaid
+flowchart TD
+    a["Advertiser submits evidence"]
+    b["Automated check"]
+    c{"How confident?"}
+    ok["Approve automatically"]
+    hum["Person reviews"]
+    no["Reject, with the reason"]
+    a --> b --> c
+    c -- "High" --> ok
+    c -- "Uncertain" --> hum
+    c -- "Clearly invalid" --> no
+    hum --> ok
+    hum --> no
+```
+
+Automation can't check everything:
+
+| Check | Can it be automated? |
+|---|---|
+| Phone ownership | Yes, with a one-time code |
+| Identity | Possibly. Ethiopia's Fayda national ID offers consent-based checks to approved organizations, which requires an agreement. Until then, simulate it. |
+| Business licence | We found no official online check, so a person reviews it for now |
+| Ownership documents | A person reviews them |
+
+**Two kinds of error:** wrongly approving a fraudster damages seekers' trust, while wrongly
+rejecting an honest advertiser loses supply. **Decided:** approving a fraudster is worse. So
+automation approves only clear cases, and doubtful ones go to a person.
+
+To keep honest advertisers from leaving while they wait, tell them exactly what's missing, show
+how long review usually takes, and let them prepare listings that publish once they're verified.
+
+### Broker approval from the owner
+
+Proposed approach: the owner confirms through TraceHome.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Broker
+    participant TH as TraceHome
+    actor Owner
+
+    Broker->>TH: Create listing and enter the owner's phone number
+    TH->>Owner: Send a confirmation request
+    Owner->>TH: Approve this broker, for this home, until a chosen date
+    TH-->>Broker: Listing can be published
+    Owner->>TH: Can withdraw approval at any time
+    TH-->>Broker: Listing is unpublished if approval is withdrawn
+```
+
+| Rule | Reason |
+|---|---|
+| Approval is per broker, per home, and expires | Limits the damage if something goes wrong |
+| The owner can withdraw approval at any time | The owner stays in control |
+| The owner's name must match the ownership document, if one is provided | Stops a broker using a friend's phone |
+| Moderators audit a random sample | Catches fraud that the automated steps miss |
+| Several approved brokers for one home are shown as one listing | Avoids duplicate listings |
+
+**Weakness to accept:** a broker could still give a fake owner number. Matching names, random audits,
+and reputation reduce this risk, but they can't remove it completely.
+
+### Losing a level
+
+| Event | Effect |
+|---|---|
+| A document or licence expires | Level expires; the advertiser is reminded beforehand and can renew |
+| Important details change, such as name or licence | Level returns to pending until rechecked |
+| Fraud is suspected | Temporary suspension while a moderator investigates |
+| Fraud is confirmed | Level removed, and listings unpublished |
+| Owner withdraws approval | That listing's approval is removed; the advertiser keeps their level |
+| Repeated complaints | Triggers a review; never an automatic penalty |
+
+Every change records who made it, when, and why. The advertiser is notified, given the reason,
+and can appeal.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Pending
+    Pending --> Verified: Checks pass
+    Pending --> Rejected: Checks fail
+    Verified --> Expired: Document or licence expires
+    Expired --> Pending: Advertiser renews
+    Verified --> Pending: Important details change
+    Verified --> Suspended: Fraud suspected
+    Suspended --> Verified: Cleared on investigation
+    Suspended --> Revoked: Fraud confirmed
+    Rejected --> Pending: Advertiser resubmits
+```
+
+### Retention and the law
+
+Ethiopia's Personal Data Protection Proclamation (No. 1321/2024) is in force. Summaries say it
+requires keeping personal data no longer than its purpose needs, gives people rights such as access
+and erasure, and **may require personal data collected in Ethiopia to be stored in Ethiopia**. We
+haven't read the official text, so every point here needs legal confirmation.
+
+**Proposed principle:** store as little as possible. If an identity check can return a yes or no
+answer, keep the answer, not a copy of the ID.
+
+| Record | Proposed retention, pending legal advice |
+|---|---|
+| ID images, if we must keep them | Delete soon after verification, once any appeal period ends |
+| Verification decisions, without the documents | Keep for several years, for disputes and audits |
+| Ownership documents | Keep while listings are active, plus a dispute period |
+| Audit records | Keep for years, and protect them from being changed |
+
+**Decided for now:** everything runs on AWS, using made-up data. Personal data is kept clearly
+separate from other data, so it could move to local storage later if the law requires it.
+
+**Why this matters for architecture:** minimizing data may remove the need to archive ID images at
+all. Long-term archive storage would then be for decision records, audit records, and ownership
+documents. A legal requirement can add a service, and it can also remove one.
+
+## 6b. Rules that must always hold
+
+An **invariant** is a rule that must be true at every moment, no matter how many people act at
+once, and even if something crashes halfway. Invariants decide which actions must happen as one
+all-or-nothing step, and that later shapes the architecture.
+
+Draft list to discuss. For each one, decide whether it must be true **instantly**, or whether
+it's fine to become true **within seconds or minutes**.
+
+| # | Invariant | Instantly or eventually? |
+|---|---|---|
+| 1 | A seeker can't spend more credits than they have | To discuss |
+| 2 | A credit is never spent twice, even when a request is retried | To discuss |
+| 3 | A seeker never pays twice to unlock the same listing | To discuss |
+| 4 | A seeker's balance always equals the sum of their ledger entries | To discuss |
+| 5 | An expired bonus credit can't be spent | To discuss |
+| 6 | Contact details are visible only to seekers who unlocked them | To discuss |
+| 7 | An advertiser never has more active listings or agents than their plan allows | To discuss |
+| 8 | Only approved listings appear in search | To discuss |
+| 9 | A broker's listing is public only while the owner's approval is valid | To discuss |
+| 10 | A review exists only after an unlock and a reported viewing | To discuss |
+| 11 | One seeker leaves at most one review per unlock | To discuss |
+| 12 | An advertiser never sees another advertiser's private data | To discuss |
+| 13 | Every unlock produces a lead for the advertiser | To discuss |
+| 14 | Every automated or human decision is recorded, and the record can't be changed | To discuss |
+| 15 | A removed agent loses access immediately | To discuss |
 
 ## 7. Domain model
 
@@ -220,6 +494,10 @@ erDiagram
     REVIEW ||--o| RESPONSE : gets
     SEEKER ||--o{ REPORT : files
     LISTING ||--o{ REPORT : about
+    LISTING ||--o{ OWNER_APPROVAL : needs
+    ADVERTISER ||--o| SUBSCRIPTION : has
+    SUBSCRIPTION }o--|| PLAN : follows
+    REVIEW_CASE }o--|| MODERATOR : assigned_to
 ```
 
 | Concept | Meaning |
@@ -227,6 +505,10 @@ erDiagram
 | Advertiser | An owner, broker, or agency that publishes listings |
 | Member | A person acting for an advertiser, such as an agency's agent |
 | Verification | A check TraceHome performed, and its result |
+| Owner approval | An owner's time-limited permission for a broker to advertise one home |
+| Plan | A package with limits on listings and agents |
+| Subscription | Which plan an advertiser has, and its status |
+| Review case | Any decision automation sends to a person |
 | Listing | A property offered for rent or sale |
 | Credit entry | A permanent record of a purchase, spend, or refund |
 | Contact unlock | A seeker paying to see one listing's advertiser contact; also a lead |
@@ -297,6 +579,7 @@ to discuss.
 | Small budget | Run only what we need, when we need it |
 | One development environment | No separate production environment for now |
 | Built on AWS | Required by the course, but services are chosen later |
+| Ethiopian data protection law | May restrict where personal data is stored and for how long; needs legal review |
 | Learning is a goal | We'll choose designs that teach us core cloud concepts |
 
 **Assumptions to check:** most seekers use mobile phones; seekers will pay for contacts; owners will
