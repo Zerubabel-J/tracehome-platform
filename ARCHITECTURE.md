@@ -3,9 +3,9 @@
 This document turns the agreed requirements into a design. We build it in two stages:
 
 1. **Logical architecture:** the parts of the system and how they work together, without naming
-   any technology. *(This stage.)*
+   any technology. *(Done.)*
 2. **AWS architecture:** each logical part mapped to AWS services, with a reason for every choice.
-   *(Next stage.)*
+   *(In progress: the network is decided.)*
 
 Separating the stages keeps the reasoning honest. If a part can't be justified without naming a
 product, it probably isn't needed.
@@ -279,3 +279,175 @@ Answer these yourself first. They test whether the design is clear to you.
 3. Why is the core one application with modules, and not seven separate services?
 4. What happens to a lead if the advertiser's CRM is offline when the seeker unlocks the contact?
 5. Why are public photos and verification documents stored separately?
+
+---
+
+# Stage 2: AWS architecture
+
+Each part of the logical architecture is mapped to AWS here, one layer at a time, following a
+request from the seeker's phone down to the data.
+
+```text
+DNS → CDN at the edge → firewall → load balancer → compute → database and files
+           all inside a network: VPC, subnets, gateways
+```
+
+**Target versus build.** For every layer we describe two things:
+
+- **Target design:** what TraceHome needs to meet its requirements with real users.
+- **Development build:** what we actually run now, within a budget of about $30. Every difference
+  is a conscious choice with a reason, and we know how to switch it on later.
+
+## Network
+
+### The rule
+
+Only the load balancer faces the internet. Everything else is private and accepts traffic only
+from the part directly in front of it.
+
+```mermaid
+flowchart TB
+    users["Seekers and advertisers"]
+    cdn["CDN at the edge<br/>photos and web pages"]
+    ext["External services<br/>AI checks, CRM webhooks, SMS"]
+
+    subgraph aws["AWS Region"]
+        subgraph vpc["VPC"]
+            igw["Internet gateway"]
+            alb["Load balancer<br/>public subnets in both zones"]
+
+            subgraph aza["Availability Zone A"]
+                nat["NAT gateway<br/>public subnet"]
+                appa["Application<br/>private app subnet"]
+                work["Background workers<br/>private app subnet"]
+                dba["Database primary<br/>private data subnet"]
+                idx["Search index<br/>private data subnet"]
+            end
+
+            subgraph azb["Availability Zone B"]
+                appb["Application<br/>private app subnet"]
+                dbb["Database standby<br/>private data subnet"]
+            end
+
+            s3ep["S3 gateway endpoint<br/>free"]
+        end
+
+        s3pub["Public files bucket<br/>photos, private bucket"]
+        s3priv["Private files bucket<br/>verification documents"]
+    end
+
+    users -->|HTTPS| cdn
+    users -->|HTTPS| igw --> alb
+    cdn -->|only the CDN may read| s3pub
+    alb --> appa
+    alb --> appb
+    appa --> dba
+    appb --> dba
+    work --> dba
+    appa --> idx
+    dba -. "copies every change" .-> dbb
+    appa --> s3ep
+    work --> s3ep
+    s3ep --> s3pub
+    s3ep --> s3priv
+    appa --> nat
+    work -->|outbound only| nat --> igw --> ext
+```
+
+### Where each part lives
+
+| Part | Where it lives | Who can reach it |
+|---|---|---|
+| Load balancer | Public subnets, in two zones | The internet, on HTTPS only |
+| NAT gateway | Public subnet | Nothing can start a connection to it from outside |
+| Application | Private app subnets | Only the load balancer |
+| Background workers | Private app subnets | No one. They pull work from a queue; nothing calls into them |
+| Database | Private data subnets | Only the application and the workers |
+| Search index | Private data subnets | Only the application and the indexer |
+| Files | Outside the VPC. S3 is a regional service, not part of a subnet | See below |
+
+**Visible to the public is not the same as open to the public.** Both buckets stay private, with
+Block Public Access turned on:
+
+- Photos reach users through the CDN, and only the CDN has permission to read the public files
+  bucket.
+- Verification documents never go through the CDN. A reviewer gets a link that expires after a few
+  minutes, and every access is recorded.
+
+Keeping the two buckets apart limits the blast radius: one wrong permission setting can expose
+only listing photos, which are public anyway, never identity documents.
+
+### Three layers of subnets
+
+| Layer | Contains | Route to the internet |
+|---|---|---|
+| Public | Load balancer, NAT gateway | Directly, through the internet gateway |
+| Private app | Application, background workers | Outbound only, through the NAT gateway |
+| Private data | Database, search index | None. Data can't leave by any internet path |
+
+The data layer has no route to the internet at all. Even if an attacker got into the database
+server, it couldn't send data out directly.
+
+### Address plan (proposed)
+
+| Range | Use |
+|---|---|
+| `10.20.0.0/16` | The whole VPC: about 65,000 addresses, room to grow, and unlikely to clash if we connect another network later |
+| `10.20.0.0/24`, `10.20.1.0/24` | Public subnets, zones A and B |
+| `10.20.10.0/24`, `10.20.11.0/24` | Private app subnets, zones A and B |
+| `10.20.20.0/24`, `10.20.21.0/24` | Private data subnets, zones A and B |
+
+### Security groups: "only from X" rules
+
+Each part allows traffic only from the security group in front of it, not from an IP range, so
+the rules keep working when containers change addresses.
+
+| Security group | Allows in | From |
+|---|---|---|
+| Load balancer | HTTPS (443) | The internet |
+| Application | The application port | The load balancer's security group only |
+| Workers | Nothing | No one |
+| Database | The database port | The application and workers security groups only |
+| Search index | The search port | The application and workers security groups only |
+
+### Calls going out
+
+The application and workers must call services outside the VPC, without being reachable from
+outside.
+
+| Destination | Path | Why |
+|---|---|---|
+| S3 (photos, documents) | S3 gateway endpoint | Free, and photo traffic is the largest. Traffic stays inside AWS |
+| AI checks, CRM webhooks, SMS | NAT gateway | The only way out to the internet for private subnets. Replies come back; new connections from outside can't come in |
+| Other AWS services (queues, secrets, logs) | NAT gateway for now | An interface endpoint costs about $7 a month per zone. We add one when traffic or security justifies it |
+
+**Not used here, and why.** VPC peering and Transit Gateway connect one network to another (VPC to
+VPC, or VPC to an office datacenter). They don't give a private subnet a way out to the internet
+or to AWS services, so they don't solve this problem.
+
+### One zone or two
+
+High availability matters most for the parts the user waits on. Parts behind a queue, or parts
+that can be rebuilt, can live in one zone.
+
+| Part | Target design | Why |
+|---|---|---|
+| Load balancer | Two zones | AWS requires at least two zones for an Application Load Balancer |
+| Application | Two zones | Browsing must keep working if one zone fails |
+| Database | Multi-AZ: a standby in the second zone | Correctness comes first. Failover takes about 1–2 minutes with no lost data |
+| Background workers | One zone | Work waits safely in the queue. If the zone fails, workers restart elsewhere and catch up. Leads may arrive late, but are never lost |
+| Search index | One node | It's a copy. If it's lost, we rebuild it from the source of truth |
+| NAT gateway | One per zone | So losing a zone doesn't stop outbound calls in the other |
+| Files | Automatic | S3 already stores every file across at least three zones |
+
+### Target versus development build
+
+| | Target design | Development build | What we accept |
+|---|---|---|---|
+| Database | Multi-AZ | Single zone, with automated backups | A zone failure means restoring from backup |
+| NAT | One NAT gateway per zone (about $32 a month each) | One small NAT instance (about $3 a month) | Outbound calls stop if it fails, which only delays background work |
+| Application | Two or more copies across two zones | One copy | Short downtime during deployments or failures |
+| Load balancer | Two zones | Two zones | Required by AWS, so no difference |
+
+**For the presentation:** "This is the architecture TraceHome needs. For the demo we run a cheaper
+version, and we switch on Multi-AZ when there are real users."

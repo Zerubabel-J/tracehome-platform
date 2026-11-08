@@ -4,8 +4,8 @@ A trusted property platform for selling and renting homes, starting in Addis Aba
 
 **Team:** Getasil Desaleng, Seid Endris, Zerubabel Jember (Evangadi AWS, Group 9)
 
-> **Status: architecture design.** Requirements are agreed. We're now designing the logical
-> architecture. No AWS service has been chosen yet.
+> **Status: AWS architecture design.** Requirements and the logical architecture are agreed. We're
+> now mapping each part to AWS, one layer at a time. The network is decided.
 
 ## Why this repository exists
 
@@ -101,6 +101,12 @@ decision with a better argument or new evidence. Decided items move to the decis
 | 26 | 7 Nov | Quality priority: correctness, security, browsing availability, durability, speed, cost | Tells us which quality wins when two conflict | Business priorities change |
 | 27 | 7 Nov | Different availability and speed targets for each part of TraceHome | Spend effort where failure hurts most | Measurements show a target is wrong |
 | 28 | 7 Nov | Region failure: accept downtime, with backups copied to a second Region | Data survives at very low cost | Revenue justifies faster recovery |
+| 29 | 8 Nov | Only the load balancer faces the internet; application, workers, database, and search index are private | Smallest possible attack surface | None expected; this is standard practice |
+| 30 | 8 Nov | Three subnet layers: public, private app, private data (no internet route) | Data can't leave by any internet path | A part needs a different kind of access |
+| 31 | 8 Nov | Both file buckets stay private; photos go out through the CDN, documents through expiring links | Visible to the public isn't the same as open to the public | None expected |
+| 32 | 8 Nov | S3 gateway endpoint for files, NAT for external calls, interface endpoints only when justified | Gateway endpoint is free; interface endpoints cost money per zone | Traffic or security needs justify more endpoints |
+| 33 | 8 Nov | Two zones for the parts users wait on; one zone for queued or rebuildable parts | Pay for high availability only where failure hurts | Measurements show a part needs more |
+| 34 | 8 Nov | We describe a target design and a cheaper development build, and state every difference | The budget can't pay for the target, and we say so openly | Real users arrive |
 
 ### Our edge over Telegram groups
 
