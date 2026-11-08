@@ -305,54 +305,50 @@ DNS → CDN at the edge → firewall → load balancer → compute → database 
 Only the load balancer faces the internet. Everything else is private and accepts traffic only
 from the part directly in front of it.
 
-```mermaid
-flowchart TB
-    users["Seekers and advertisers"]
-    cdn["CDN at the edge<br/>photos and web pages"]
-    ext["External services<br/>AI checks, CRM webhooks, SMS"]
+The diagram shows the **target design**: what we present and defend. The development build is a
+smaller version of it, described at the end of this section.
 
-    subgraph aws["AWS Region"]
-        subgraph vpc["VPC"]
-            igw["Internet gateway"]
-            alb["Load balancer<br/>public subnets in both zones"]
+![TraceHome network architecture: target design](docs/network-architecture.svg)
 
-            subgraph aza["Availability Zone A"]
-                nat["NAT gateway<br/>public subnet"]
-                appa["Application<br/>private app subnet"]
-                work["Background workers<br/>private app subnet"]
-                dba["Database primary<br/>private data subnet"]
-                idx["Search index<br/>private data subnet"]
-            end
+*Open the image on its own for full size. The source is [docs/network-architecture.svg](docs/network-architecture.svg).*
 
-            subgraph azb["Availability Zone B"]
-                appb["Application<br/>private app subnet"]
-                dbb["Database standby<br/>private data subnet"]
-            end
+### How to read the diagram
 
-            s3ep["S3 gateway endpoint<br/>free"]
-        end
+**Colors**
 
-        s3pub["Public files bucket<br/>photos, private bucket"]
-        s3priv["Private files bucket<br/>verification documents"]
-    end
+| Color | Meaning |
+|---|---|
+| Green | **Public subnet.** Routes to the internet gateway. Only the load balancer and NAT gateways live here |
+| Blue | **Private app subnet.** The application and workers. Calls out through its own zone's NAT gateway; only the load balancer can call in |
+| Teal | **Private data subnet.** The database and search index. No internet route at all, in or out |
+| Purple | **The VPC and its doors.** The internet gateway and the S3 gateway endpoint are the only ways in or out |
+| Amber | **Amazon S3.** A regional service outside the VPC |
+| Orange, dashed | **Edge.** DNS, CDN, and firewall. Decided in the next layer |
+| Grey dashed outline | **Availability Zone.** A separate data center in the same Region |
+| Dashed box | **Standby.** Used only when something fails |
 
-    users -->|HTTPS| cdn
-    users -->|HTTPS| igw --> alb
-    cdn -->|only the CDN may read| s3pub
-    alb --> appa
-    alb --> appb
-    appa --> dba
-    appb --> dba
-    work --> dba
-    appa --> idx
-    dba -. "copies every change" .-> dbb
-    appa --> s3ep
-    work --> s3ep
-    s3ep --> s3pub
-    s3ep --> s3priv
-    appa --> nat
-    work -->|outbound only| nat --> igw --> ext
-```
+**Lines:** solid dark lines are requests and data access, dashed red lines are outbound calls
+(never inbound), the dashed teal line is database replication, and amber lines are file traffic.
+**SG** means security group: the only traffic each part accepts.
+
+**Following the numbers**
+
+| # | What happens | Why it's designed this way |
+|---|---|---|
+| ① | The seeker's phone looks up TraceHome's address | Users never see AWS internals, only a domain name |
+| ② | All traffic arrives at the CDN over HTTPS | The CDN is close to users and filters attacks before they reach AWS |
+| ③ | Photos come straight from the CDN's cache | Most browsing traffic never reaches our servers, which is fast and cheap |
+| ④ | Pages and API calls the CDN can't cache go through the internet gateway to the load balancer | The load balancer accepts traffic from the CDN only, so no one can bypass the firewall |
+| ⑤ | The load balancer shares requests between two copies of the application in two zones | If one zone fails, the other copy keeps serving |
+| ⑥ | The application and workers read and write the source of truth | Every money and permission action checks here |
+| ⑦ | Searches go to the search index; workers keep it up to date | Heavy browsing never slows down the source of truth |
+| ⑧ | The database copies every change to a standby in zone B | If zone A fails, the standby takes over in 1–2 minutes with no lost data |
+| ⑨ | Files go to S3 through the free gateway endpoint | No NAT charges for the largest traffic, and files never cross the internet |
+| ⑩ | Calls to AI checks, CRMs, and SMS go out through each zone's NAT gateway | Private parts can call out, but nothing outside can start a connection in |
+
+**What's deliberately in one zone:** the background workers and the search index. Work waits
+safely in the queue, and the index can be rebuilt from the source of truth, so a zone failure only
+delays them.
 
 ### Where each part lives
 
