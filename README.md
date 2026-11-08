@@ -4,8 +4,8 @@ A trusted property platform for selling and renting homes, starting in Addis Aba
 
 **Team:** Getasil Desaleng, Seid Endris, Zerubabel Jember (Evangadi AWS, Group 9)
 
-> **Status: discovery.** We're still understanding the problem, the users, and the business.
-> No technology or AWS service has been chosen yet.
+> **Status: architecture design.** Requirements are agreed. We're now designing the logical
+> architecture. No AWS service has been chosen yet.
 
 ## Why this repository exists
 
@@ -17,6 +17,7 @@ it changes as we learn.
 |---|---|
 | [README.md](README.md) | What TraceHome is, how we work, and the starting ideas to discuss |
 | [REQUIREMENTS.md](REQUIREMENTS.md) | Problem, users, journeys, business rules, and quality requirements |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | How TraceHome is designed, and why |
 
 ## The idea in one paragraph
 
@@ -96,6 +97,10 @@ decision with a better argument or new evidence. Decided items move to the decis
 | 22 | 5 Nov | Individual owners get a permanent free plan | Owners supply the most authentic listings | Brokers abuse it by posing as owners |
 | 23 | 6 Nov | The free owner plan allows up to 4 active listings | Covers owners with a few properties, while limiting broker abuse | Abuse appears, or owners need more |
 | 24 | 6 Nov | Clear hidden contact details go back to the advertiser automatically; unclear ones go to a moderator | Fast fixes for clear cases, moderators free for hard ones | Too many false flags annoy advertisers |
+| 25 | 6 Nov | Instant rules for money and permissions; eventual but guaranteed delivery for leads and notifications | Mistakes with money and access can't be undone | Usage shows a rule is too strict or too loose |
+| 26 | 7 Nov | Quality priority: correctness, security, browsing availability, durability, speed, cost | Tells us which quality wins when two conflict | Business priorities change |
+| 27 | 7 Nov | Different availability and speed targets for each part of TraceHome | Spend effort where failure hurts most | Measurements show a target is wrong |
+| 28 | 7 Nov | Region failure: accept downtime, with backups copied to a second Region | Data survives at very low cost | Revenue justifies faster recovery |
 
 ### Our edge over Telegram groups
 

@@ -558,7 +558,7 @@ erDiagram
 
 ## 9. Quality requirements
 
-Proposed, to discuss. Different parts of TraceHome need different levels of quality. Treating
+Agreed on 7 November. Different parts of TraceHome need different levels of quality. Treating
 everything as equally critical is expensive and hides what really matters.
 
 ### Priorities
@@ -606,7 +606,7 @@ These numbers are estimates. Test them against interviews and real usage.
 | One server or process fails | Others take over; users barely notice | Automatic, within a minute |
 | One data center in the Region fails | System keeps running in another | Automatic, within minutes |
 | Data deleted by mistake | Restore from backup | Within 1 hour, losing at most 5 minutes of data |
-| A whole Region fails | To decide: accept downtime, or build recovery in a second Region | To decide |
+| A whole Region fails | Accept downtime, and rebuild from backups copied to a second Region | Hours to a day |
 
 ### Other qualities
 
@@ -634,7 +634,7 @@ accept verification; addresses use sub-city and neighborhood more than street na
 
 ## 11. What could go wrong
 
-Proposed behavior, to discuss. The goal is graceful degradation: when one part fails, the rest
+Agreed on 7 November. The goal is graceful degradation: when one part fails, the rest
 keeps working, and the most important rules still hold.
 
 | Failure | What users experience | What must stay true |
