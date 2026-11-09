@@ -5,7 +5,7 @@ A trusted property platform for selling and renting homes, starting in Addis Aba
 **Team:** Getasil Desaleng, Seid Endris, Zerubabel Jember (Evangadi AWS, Group 9)
 
 > **Status: AWS architecture design.** Requirements and the logical architecture are agreed. We're
-> now mapping each part to AWS, one layer at a time. Network, compute, and data are decided.
+> now mapping each part to AWS, one layer at a time. Network, compute, data, and edge are decided.
 
 ## Why this repository exists
 
@@ -118,6 +118,11 @@ decision with a better argument or new evidence. Decided items move to the decis
 | 43 | 9 Nov | A restore is tested before the demo, and its real duration recorded | An untested backup is only a hope | None expected |
 | 44 | 9 Nov | The development build runs in us-east-1, with backups copied to us-west-2 | Lowest prices, every service, made-up data only | Real users arrive |
 | 45 | 9 Nov | The production Region is chosen by measured speed from Addis Ababa and by legal advice; candidates are Cape Town, UAE, and Frankfurt | The nearest Region on a map isn't always the fastest | Legal advice requires storage in Ethiopia |
+| 46 | 9 Nov | CloudFront in front of everything: long cache for app files and photos, at most 60 seconds for public pages, never for personalized responses | Speed and cost, without ever showing one person's data to another | The 1-minute removal rule changes |
+| 47 | 9 Nov | The load balancer is internal, in the private app subnets, reached through a CloudFront VPC origin; nothing in the VPC is reachable from the internet (updates decision 29) | The firewall can't be bypassed | VPC origins can't support a feature we need |
+| 48 | 9 Nov | AWS WAF on CloudFront is the first layer of defense; business rules remain the main defense | WAF sees requests, not intent | Abuse patterns change |
+| 49 | 9 Nov | Route 53 for DNS with alias records to CloudFront; ACM certificates (in us-east-1 for CloudFront), validated through DNS and renewed automatically | Free, automatic, and no expired certificates | None expected |
+| 50 | 9 Nov | Development build uses the default cloudfront.net address and basic WAF rules; the domain is bought later | Saves cost while data is made up | The demo needs a real domain |
 
 ### Our edge over Telegram groups
 

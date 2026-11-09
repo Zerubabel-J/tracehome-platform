@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1290" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" preserveAspectRatio="xMidYMin meet" style="display:block;margin:0 auto;max-width:1600px;width:100%">
-<defs><marker id="m334155" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker><marker id="m0F766E" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0F766E"/></marker><marker id="mB45309" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B45309"/></marker><marker id="m7C3AED" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker><marker id="mC2410C" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C2410C"/></marker></defs>
-<rect width="1600" height="1290" fill="#FFFFFF"/>
-<text x="40" y="44" font-size="24" fill="#0F172A" font-weight="700" text-anchor="start">TraceHome · Network architecture</text>
-<text x="40" y="68" font-size="13" fill="#64748B" font-weight="400" text-anchor="start">Target design · one AWS Region · two Availability Zones · only the load balancer faces the internet · backups copied to a second Region</text>
-<rect x="400" y="155" width="640" height="105" rx="10" fill="#FFF7ED" stroke="#D97706" stroke-width="1.5" stroke-dasharray="6 4"/>
-<text x="720" y="172" font-size="10.5" fill="#9A3412" font-weight="700" text-anchor="middle">EDGE · DECIDED IN THE NEXT LAYER</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1300" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" preserveAspectRatio="xMidYMin meet" style="display:block;margin:0 auto;max-width:1600px;width:100%">
+<defs><marker id="mC2410C" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C2410C"/></marker><marker id="m0F766E" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0F766E"/></marker><marker id="m334155" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker><marker id="mB45309" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B45309"/></marker></defs>
+<rect width="1600" height="1300" fill="#FFFFFF"/>
+<text x="40" y="44" font-size="24" fill="#0F172A" font-weight="700" text-anchor="start">TraceHome · AWS architecture</text>
+<text x="40" y="68" font-size="13" fill="#64748B" font-weight="400" text-anchor="start">Target design · one AWS Region · two Availability Zones · nothing in the VPC is reachable from the internet · backups copied to a second Region</text>
+<rect x="400" y="152" width="640" height="110" rx="10" fill="#FFF7ED" stroke="#D97706" stroke-width="1.5"/>
+<text x="720" y="169" font-size="10.5" fill="#9A3412" font-weight="700" text-anchor="middle">EDGE · AWS GLOBAL NETWORK, IN FRONT OF THE REGION</text>
 <rect x="30" y="295" width="1540" height="670" rx="10" fill="#F8FAFC" stroke="#232F3E" stroke-width="2"/>
 <text x="46" y="318" font-size="11" fill="#232F3E" font-weight="700" text-anchor="start">AWS REGION</text>
 <rect x="60" y="330" width="1040" height="615" rx="10" fill="#F5F3FF" stroke="#7C3AED" stroke-width="2"/>
@@ -14,76 +14,78 @@
 <text x="320" y="390" font-size="11" fill="#334155" font-weight="700" text-anchor="middle">AVAILABILITY ZONE A</text>
 <rect x="590" y="372" width="420" height="563" rx="10" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="6 4"/>
 <text x="760" y="390" font-size="11" fill="#334155" font-weight="700" text-anchor="middle">AVAILABILITY ZONE B</text>
-<rect x="95" y="400" width="450" height="115" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.3"/>
-<rect x="605" y="400" width="390" height="115" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.3"/>
-<rect x="95" y="530" width="450" height="170" rx="8" fill="#EFF6FF" stroke="#1D4ED8" stroke-width="1.3"/>
-<rect x="605" y="530" width="390" height="170" rx="8" fill="#EFF6FF" stroke="#1D4ED8" stroke-width="1.3"/>
+<rect x="95" y="400" width="450" height="90" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.3"/>
+<rect x="605" y="400" width="390" height="90" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="1.3"/>
+<rect x="95" y="505" width="450" height="195" rx="8" fill="#EFF6FF" stroke="#1D4ED8" stroke-width="1.3"/>
+<rect x="605" y="505" width="390" height="195" rx="8" fill="#EFF6FF" stroke="#1D4ED8" stroke-width="1.3"/>
 <rect x="95" y="715" width="450" height="205" rx="8" fill="#F0FDFA" stroke="#0F766E" stroke-width="1.3"/>
 <rect x="605" y="715" width="390" height="205" rx="8" fill="#F0FDFA" stroke="#0F766E" stroke-width="1.3"/>
 <rect x="1200" y="520" width="350" height="390" rx="10" fill="#FFFBEB" stroke="#B45309" stroke-width="1.5"/>
 <text x="1216" y="542" font-size="11" fill="#78350F" font-weight="700" text-anchor="start">AMAZON S3 · OUTSIDE THE VPC</text>
 <text x="1216" y="557" font-size="10.5" fill="#78350F" font-weight="400" text-anchor="start">every file is stored across 3+ zones</text>
-<path d="M690,135 V145 H530 V185" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
-<path d="M750,135 V145 H900 V185" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
-<path d="M960,245 V268 H1480 V575" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
-<path d="M850,245 V280 H620 V310" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
-<path d="M580,350 V430" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
-<path d="M425,500 V580" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
-<path d="M735,500 V580" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
-<path d="M440,655 V760" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
-<path d="M690,655 V700 H480 V760" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
-<path d="M245,655 V730 H350 V760" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
-<path d="M370,655 V712 H230 V760" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
-<path d="M185,655 V760" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M690,135 V145 H530 V182" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M750,135 V145 H900 V182" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M960,250 V268 H1480 V575" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<path d="M850,250 V280 H575 V522" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M425,572 V610" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M735,572 V610" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M440,685 V760" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M690,685 V705 H480 V760" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M245,685 V740 H350 V760" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M370,685 V722 H230 V760" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M185,685 V760" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
 <path d="M520,805 H640" fill="none" stroke="#0F766E" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#m0F766E)" stroke-linejoin="round"/>
-<path d="M995,615 H1030" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
-<path d="M1170,610 H1230" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
-<path d="M1170,630 H1200 V810 H1230" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
-<path d="M185,580 V500" fill="none" stroke="#C2410C" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mC2410C)" stroke-linejoin="round"/>
-<path d="M915,580 V500" fill="none" stroke="#C2410C" stroke-width="2" stroke-dasharray="3 4" marker-end="url(#mC2410C)" stroke-linejoin="round"/>
-<path d="M240,440 V330 H500" fill="none" stroke="#C2410C" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mC2410C)" stroke-linejoin="round"/>
-<path d="M870,440 V330 H660" fill="none" stroke="#C2410C" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mC2410C)" stroke-linejoin="round"/>
-<path d="M520,310 V282 H170 V235" fill="none" stroke="#C2410C" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mC2410C)" stroke-linejoin="round"/>
+<path d="M995,650 H1030" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<path d="M1170,640 H1230" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<path d="M1170,660 H1200 V810 H1230" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<path d="M1410,575 V445" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<path d="M1450,445 V575" fill="none" stroke="#B45309" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<path d="M185,610 V475" fill="none" stroke="#C2410C" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mC2410C)" stroke-linejoin="round"/>
+<path d="M915,610 V475" fill="none" stroke="#C2410C" stroke-width="2" stroke-dasharray="3 4" marker-end="url(#mC2410C)" stroke-linejoin="round"/>
+<path d="M240,415 V330 H330" fill="none" stroke="#C2410C" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mC2410C)" stroke-linejoin="round"/>
+<path d="M870,415 V330 H490" fill="none" stroke="#C2410C" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mC2410C)" stroke-linejoin="round"/>
+<path d="M380,310 V284 H170 V235" fill="none" stroke="#C2410C" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mC2410C)" stroke-linejoin="round"/>
 <rect x="620" y="85" width="200" height="50" rx="25" fill="#F1F5F9" stroke="#475569" stroke-width="2"/>
 <text x="720" y="106" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Seekers and advertisers</text>
 <text x="720" y="123" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">phone or browser</text>
 <rect x="40" y="165" width="260" height="70" rx="8" fill="#F4F4F5" stroke="#71717A" stroke-width="2" stroke-dasharray="6 4"/>
 <text x="170.0" y="196.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">External services</text>
 <text x="170.0" y="212.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">AI checks · CRM webhooks · SMS</text>
-<rect x="430" y="185" width="200" height="60" rx="8" fill="#FFFFFF" stroke="#D97706" stroke-width="2" stroke-dasharray="6 4"/>
-<text x="530.0" y="211.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">DNS</text>
-<text x="530.0" y="227.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">finds TraceHome's address</text>
-<rect x="790" y="185" width="220" height="60" rx="8" fill="#FFFFFF" stroke="#D97706" stroke-width="2" stroke-dasharray="6 4"/>
-<text x="900.0" y="211.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">CDN + web firewall</text>
-<text x="900.0" y="227.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">caches photos and pages, blocks attacks</text>
-<rect x="500" y="310" width="160" height="40" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
-<text x="580.0" y="334.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Internet gateway</text>
-<rect x="320" y="430" width="510" height="70" rx="8" fill="#FFFFFF" stroke="#15803D" stroke-width="2"/>
-<text x="575.0" y="453.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Application Load Balancer</text>
-<text x="575.0" y="469.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">spans both public subnets · HTTPS (443) only</text>
-<text x="575.0" y="486.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">security group: accepts the CDN only</text>
-<rect x="110" y="440" width="150" height="60" rx="8" fill="#FFFFFF" stroke="#15803D" stroke-width="2"/>
-<text x="185.0" y="466.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">NAT gateway A</text>
-<text x="185.0" y="482.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">outbound only</text>
-<rect x="845" y="440" width="140" height="60" rx="8" fill="#FFFFFF" stroke="#15803D" stroke-width="2"/>
-<text x="915.0" y="466.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">NAT gateway B</text>
-<text x="915.0" y="482.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">outbound only</text>
-<rect x="110" y="580" width="150" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
-<text x="185.0" y="605.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Background workers</text>
-<text x="185.0" y="621.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS on Fargate</text>
-<text x="185.0" y="638.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: no inbound</text>
-<rect x="330" y="580" width="190" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
-<text x="425.0" y="605.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Application · copy A</text>
-<text x="425.0" y="621.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS on Fargate · one image</text>
-<text x="425.0" y="638.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: load balancer only</text>
-<rect x="640" y="580" width="190" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
-<text x="735.0" y="605.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Application · copy B</text>
-<text x="735.0" y="621.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS on Fargate · one image</text>
-<text x="735.0" y="638.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: load balancer only</text>
-<rect x="845" y="580" width="140" height="75" rx="8" fill="#F8FAFC" stroke="#1D4ED8" stroke-width="2" stroke-dasharray="6 4"/>
-<text x="915.0" y="605.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Workers (standby)</text>
-<text x="915.0" y="621.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">restart here if</text>
-<text x="915.0" y="638.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">zone A fails</text>
+<rect x="430" y="182" width="200" height="68" rx="8" fill="#FFFFFF" stroke="#D97706" stroke-width="2"/>
+<text x="530.0" y="204.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Route 53</text>
+<text x="530.0" y="220.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">DNS · alias record</text>
+<text x="530.0" y="237.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">points the domain to CloudFront</text>
+<rect x="780" y="182" width="240" height="68" rx="8" fill="#FFFFFF" stroke="#D97706" stroke-width="2"/>
+<text x="900.0" y="204.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">CloudFront + AWS WAF</text>
+<text x="900.0" y="220.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">caches photos and public pages</text>
+<text x="900.0" y="237.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ACM certificate · Shield Standard</text>
+<rect x="330" y="310" width="160" height="40" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+<text x="410.0" y="334.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Internet gateway</text>
+<rect x="320" y="522" width="510" height="50" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
+<text x="575.0" y="543.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Application Load Balancer · internal</text>
+<text x="575.0" y="559.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">private app subnets in both zones · reached only through CloudFront</text>
+<rect x="110" y="415" width="150" height="60" rx="8" fill="#FFFFFF" stroke="#15803D" stroke-width="2"/>
+<text x="185.0" y="441.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">NAT gateway A</text>
+<text x="185.0" y="457.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">outbound only</text>
+<rect x="845" y="415" width="140" height="60" rx="8" fill="#FFFFFF" stroke="#15803D" stroke-width="2"/>
+<text x="915.0" y="441.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">NAT gateway B</text>
+<text x="915.0" y="457.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">outbound only</text>
+<rect x="110" y="610" width="150" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
+<text x="185.0" y="635.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Background workers</text>
+<text x="185.0" y="651.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS on Fargate</text>
+<text x="185.0" y="668.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: no inbound</text>
+<rect x="330" y="610" width="190" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
+<text x="425.0" y="635.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Application · copy A</text>
+<text x="425.0" y="651.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS on Fargate · one image</text>
+<text x="425.0" y="668.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: load balancer only</text>
+<rect x="640" y="610" width="190" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
+<text x="735.0" y="635.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Application · copy B</text>
+<text x="735.0" y="651.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS on Fargate · one image</text>
+<text x="735.0" y="668.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: load balancer only</text>
+<rect x="845" y="610" width="140" height="75" rx="8" fill="#F8FAFC" stroke="#1D4ED8" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="915.0" y="635.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Workers (standby)</text>
+<text x="915.0" y="651.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">restart here if</text>
+<text x="915.0" y="668.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">zone A fails</text>
 <path d="M110,769 A75.0,9 0 0 1 260,769 V846 A75.0,9 0 0 1 110,846 Z" fill="#FFFFFF" stroke="#0F766E" stroke-width="2"/>
 <path d="M110,769 A75.0,9 0 0 0 260,769" fill="none" stroke="#0F766E" stroke-width="2"/>
 <text x="185.0" y="800.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Search index</text>
@@ -99,28 +101,33 @@
 <text x="735.0" y="800.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">RDS PostgreSQL · standby</text>
 <text x="735.0" y="816.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">Multi-AZ · 1–2 min failover</text>
 <text x="735.0" y="833.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">no data lost</text>
-<rect x="1030" y="590" width="140" height="60" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
-<text x="1100.0" y="616.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">S3 gateway endpoint</text>
-<text x="1100.0" y="632.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">free private path</text>
+<rect x="1030" y="620" width="140" height="60" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+<text x="1100.0" y="646.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">S3 gateway endpoint</text>
+<text x="1100.0" y="662.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">free private path</text>
+<rect x="1180" y="350" width="290" height="95" rx="8" fill="#FFFFFF" stroke="#D946EF" stroke-width="2"/>
+<text x="1325.0" y="377.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Photo processing</text>
+<text x="1325.0" y="393.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">AWS Lambda · outside the VPC, no database access</text>
+<text x="1325.0" y="410.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">resizes photos · removes GPS location data</text>
+<text x="1325.0" y="427.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">flags hidden phone numbers → workers' queue</text>
 <path d="M1230,584 A150.0,9 0 0 1 1530,584 V671 A150.0,9 0 0 1 1230,671 Z" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
 <path d="M1230,584 A150.0,9 0 0 0 1530,584" fill="none" stroke="#B45309" stroke-width="2"/>
 <text x="1380.0" y="620.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Photos bucket</text>
 <text x="1380.0" y="636.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">private · Block Public Access on</text>
-<text x="1380.0" y="653.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">only the CDN may read</text>
+<text x="1380.0" y="653.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">only CloudFront may read</text>
 <path d="M1230,769 A150.0,9 0 0 1 1530,769 V866 A150.0,9 0 0 1 1230,866 Z" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
 <path d="M1230,769 A150.0,9 0 0 0 1530,769" fill="none" stroke="#B45309" stroke-width="2"/>
 <text x="1380.0" y="802.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Documents bucket</text>
 <text x="1380.0" y="818.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ID and ownership papers</text>
 <text x="1380.0" y="835.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">expiring links · every access logged</text>
-<text x="1380.0" y="852.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">never behind the CDN</text>
-<text x="105" y="416" font-size="10.5" fill="#15803D" font-weight="700" text-anchor="start">PUBLIC SUBNET</text>
-<text x="105" y="429" font-size="10.5" fill="#15803D" font-weight="400" text-anchor="start">10.20.0.0/24</text>
-<text x="988" y="416" font-size="10.5" fill="#15803D" font-weight="700" text-anchor="end">PUBLIC SUBNET</text>
-<text x="988" y="429" font-size="10.5" fill="#15803D" font-weight="400" text-anchor="end">10.20.1.0/24</text>
-<text x="305" y="550" font-size="10.5" fill="#1D4ED8" font-weight="700" text-anchor="middle">PRIVATE APP SUBNET</text>
-<text x="305" y="563" font-size="10.5" fill="#1D4ED8" font-weight="400" text-anchor="middle">10.20.10.0/24</text>
-<text x="752" y="550" font-size="10.5" fill="#1D4ED8" font-weight="700" text-anchor="start">PRIVATE APP SUBNET</text>
-<text x="752" y="563" font-size="10.5" fill="#1D4ED8" font-weight="400" text-anchor="start">10.20.11.0/24</text>
+<text x="1380.0" y="852.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">never behind CloudFront</text>
+<text x="280" y="437" font-size="10.5" fill="#15803D" font-weight="700" text-anchor="start">PUBLIC SUBNET · 10.20.0.0/24</text>
+<text x="280" y="450" font-size="10.5" fill="#15803D" font-weight="400" text-anchor="start">NAT gateway only · route to the internet gateway</text>
+<text x="830" y="437" font-size="10.5" fill="#15803D" font-weight="700" text-anchor="end">PUBLIC SUBNET · 10.20.1.0/24</text>
+<text x="830" y="450" font-size="10.5" fill="#15803D" font-weight="400" text-anchor="end">NAT gateway only</text>
+<text x="200" y="525" font-size="10.5" fill="#1D4ED8" font-weight="700" text-anchor="start">PRIVATE APP</text>
+<text x="200" y="538" font-size="10.5" fill="#1D4ED8" font-weight="400" text-anchor="start">10.20.10.0/24</text>
+<text x="990" y="525" font-size="10.5" fill="#1D4ED8" font-weight="700" text-anchor="end">PRIVATE APP</text>
+<text x="990" y="538" font-size="10.5" fill="#1D4ED8" font-weight="400" text-anchor="end">10.20.11.0/24</text>
 <text x="105" y="908" font-size="10.5" fill="#0F766E" font-weight="700" text-anchor="start">PRIVATE DATA SUBNET · 10.20.20.0/24 · no internet route</text>
 <text x="615" y="908" font-size="10.5" fill="#0F766E" font-weight="700" text-anchor="start">PRIVATE DATA SUBNET · 10.20.21.0/24 · no internet route</text>
 <rect x="558.4" y="135" width="103.19999999999999" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
@@ -131,72 +138,68 @@
 <circle cx="805.75" cy="145" r="8" fill="#334155"/>
 <text x="805.75" y="149" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
 <text x="818.75" y="149" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">HTTPS</text>
-<path d="M1410,575 V445" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
-<path d="M1450,445 V575" fill="none" stroke="#B45309" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mB45309)" stroke-linejoin="round"/>
-<rect x="1180" y="350" width="290" height="95" rx="8" fill="#FFFFFF" stroke="#D946EF" stroke-width="2"/>
-<text x="1325" y="376" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Photo processing</text>
-<text x="1325" y="393" font-size="11" fill="#64748B" text-anchor="middle">AWS Lambda · outside the VPC, no database access</text>
-<text x="1325" y="410" font-size="11" fill="#64748B" text-anchor="middle">resizes photos · removes GPS location data</text>
-<text x="1325" y="427" font-size="11" fill="#64748B" text-anchor="middle">flags hidden phone numbers → workers' queue</text>
-<rect x="1399" y="465" width="24" height="20" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="1.2"/>
-<circle cx="1411" cy="475" r="8" fill="#B45309"/>
-<text x="1411" y="479" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">11</text>
 <rect x="1413.15" y="310" width="133.7" height="20" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="1.2"/>
 <circle cx="1424.15" cy="320" r="8" fill="#B45309"/>
 <text x="1424.15" y="324" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
 <text x="1437.15" y="324" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">photos from cache</text>
-<rect x="662.05" y="270" width="145.89999999999998" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
-<circle cx="673.05" cy="280" r="8" fill="#334155"/>
-<text x="673.05" y="284" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
-<text x="686.05" y="284" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">pages and API calls</text>
-<rect x="414.0" y="505" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
-<circle cx="425.0" cy="515" r="8" fill="#334155"/>
-<text x="425.0" y="519" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
-<rect x="724.0" y="505" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
-<circle cx="735.0" cy="515" r="8" fill="#334155"/>
-<text x="735.0" y="519" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
-<rect x="429.0" y="690" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
-<circle cx="440.0" cy="700" r="8" fill="#334155"/>
-<text x="440.0" y="704" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">6</text>
-<rect x="589.0" y="690" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
-<circle cx="600.0" cy="700" r="8" fill="#334155"/>
-<text x="600.0" y="704" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">6</text>
-<rect x="174.0" y="690" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
-<circle cx="185.0" cy="700" r="8" fill="#334155"/>
-<text x="185.0" y="704" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">7</text>
+<rect x="608.75" y="270" width="182.5" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+<circle cx="619.75" cy="280" r="8" fill="#334155"/>
+<text x="619.75" y="284" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
+<text x="632.75" y="284" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">VPC origin · private path</text>
+<rect x="414.0" y="581" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+<circle cx="425.0" cy="591" r="8" fill="#334155"/>
+<text x="425.0" y="595" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
+<rect x="724.0" y="581" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+<circle cx="735.0" cy="591" r="8" fill="#334155"/>
+<text x="735.0" y="595" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
+<rect x="429.0" y="725" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+<circle cx="440.0" cy="735" r="8" fill="#334155"/>
+<text x="440.0" y="739" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">6</text>
+<rect x="589.0" y="695" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+<circle cx="600.0" cy="705" r="8" fill="#334155"/>
+<text x="600.0" y="709" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">6</text>
+<rect x="174.0" y="725" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+<circle cx="185.0" cy="735" r="8" fill="#334155"/>
+<text x="185.0" y="739" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">7</text>
 <rect x="534.5" y="772" width="91.0" height="20" rx="10" fill="#FFFFFF" stroke="#0F766E" stroke-width="1.2"/>
 <circle cx="545.5" cy="782" r="8" fill="#0F766E"/>
 <text x="545.5" y="786" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">8</text>
 <text x="558.5" y="786" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">replicates</text>
-<rect x="1001.0" y="605" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="1.2"/>
-<circle cx="1012.0" cy="615" r="8" fill="#B45309"/>
-<text x="1012.0" y="619" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">9</text>
-<rect x="174.0" y="510" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.2"/>
-<circle cx="185.0" cy="520" r="8" fill="#C2410C"/>
-<text x="185.0" y="524" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">10</text>
-<rect x="287.3" y="272" width="115.39999999999999" height="20" rx="10" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.2"/>
-<circle cx="298.3" cy="282" r="8" fill="#C2410C"/>
-<text x="298.3" y="286" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">10</text>
-<text x="311.3" y="286" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">outbound calls</text>
+<rect x="1001.0" y="640" width="22" height="20" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="1.2"/>
+<circle cx="1012.0" cy="650" r="8" fill="#B45309"/>
+<text x="1012.0" y="654" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">9</text>
+<rect x="1398.0" y="465" width="24" height="20" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="1.2"/>
+<circle cx="1410.0" cy="475" r="8" fill="#B45309"/>
+<text x="1410.0" y="479" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">11</text>
+<rect x="173.0" y="535" width="24" height="20" rx="10" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.2"/>
+<circle cx="185.0" cy="545" r="8" fill="#C2410C"/>
+<text x="185.0" y="549" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">10</text>
+<rect x="211.3" y="274" width="117.39999999999999" height="20" rx="10" fill="#FFFFFF" stroke="#C2410C" stroke-width="1.2"/>
+<circle cx="223.3" cy="284" r="8" fill="#C2410C"/>
+<text x="223.3" y="288" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">10</text>
+<text x="236.3" y="288" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">outbound calls</text>
 <text x="40" y="995" font-size="12" fill="#0F172A" font-weight="700" text-anchor="start">HOW TO READ THIS DIAGRAM</text>
 <rect x="40" y="1017" width="26" height="22" rx="4" fill="#F0FDF4" stroke="#15803D" stroke-width="1.5"/>
 <text x="76" y="1027" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">Public subnet</text>
-<text x="76" y="1041" font-size="11" fill="#64748B" font-weight="400" text-anchor="start">routes to the internet gateway</text>
+<text x="76" y="1041" font-size="11" fill="#64748B" font-weight="400" text-anchor="start">NAT gateways only</text>
 <rect x="40" y="1051" width="26" height="22" rx="4" fill="#EFF6FF" stroke="#1D4ED8" stroke-width="1.5"/>
 <text x="76" y="1061" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">Private app subnet</text>
-<text x="76" y="1075" font-size="11" fill="#64748B" font-weight="400" text-anchor="start">calls out through its zone's NAT only</text>
+<text x="76" y="1075" font-size="11" fill="#64748B" font-weight="400" text-anchor="start">load balancer, app, workers; out via NAT</text>
 <rect x="40" y="1085" width="26" height="22" rx="4" fill="#F0FDFA" stroke="#0F766E" stroke-width="1.5"/>
 <text x="76" y="1095" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">Private data subnet</text>
 <text x="76" y="1109" font-size="11" fill="#64748B" font-weight="400" text-anchor="start">no internet route, in or out</text>
 <rect x="40" y="1119" width="26" height="22" rx="4" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.5"/>
 <text x="76" y="1129" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">VPC and its doors</text>
-<text x="76" y="1143" font-size="11" fill="#64748B" font-weight="400" text-anchor="start">internet gateway, S3 endpoint</text>
+<text x="76" y="1143" font-size="11" fill="#64748B" font-weight="400" text-anchor="start">internet gateway (outbound), S3 endpoint</text>
 <rect x="40" y="1153" width="26" height="22" rx="4" fill="#FFFBEB" stroke="#B45309" stroke-width="1.5"/>
 <text x="76" y="1163" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">Amazon S3</text>
 <text x="76" y="1177" font-size="11" fill="#64748B" font-weight="400" text-anchor="start">regional, outside the VPC</text>
 <rect x="40" y="1187" width="26" height="22" rx="4" fill="#FFF7ED" stroke="#D97706" stroke-width="1.5"/>
-<text x="76" y="1197" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">Edge (dashed)</text>
-<text x="76" y="1211" font-size="11" fill="#64748B" font-weight="400" text-anchor="start">next layer to decide</text>
+<text x="76" y="1197" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">Edge</text>
+<text x="76" y="1211" font-size="11" fill="#64748B" font-weight="400" text-anchor="start">global, in front of the Region</text>
+<rect x="40" y="1221" width="26" height="22" rx="4" fill="#FDF4FF" stroke="#D946EF" stroke-width="1.5"/>
+<text x="76" y="1231" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">AWS Lambda</text>
+<text x="76" y="1245" font-size="11" fill="#64748B" font-weight="400" text-anchor="start">event-driven, outside the VPC</text>
 <text x="360" y="995" font-size="12" fill="#0F172A" font-weight="700" text-anchor="start">LINES</text>
 <path d="M360,1028 H410" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
 <text x="422" y="1032" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Request or data access</text>
@@ -207,43 +210,39 @@
 <path d="M360,1130 H410" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
 <text x="422" y="1134" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">File traffic</text>
 <rect x="360" y="1154" width="50" height="22" rx="6" fill="#F8FAFC" stroke="#1D4ED8" stroke-width="2" stroke-dasharray="6 4"/>
-<text x="422" y="1169" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Dashed box: standby, only used on failure</text>
+<text x="422" y="1169" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Dashed box: standby, used only on failure</text>
 <text x="700" y="995" font-size="12" fill="#0F172A" font-weight="700" text-anchor="start">FOLLOW THE NUMBERS</text>
 <circle cx="709" cy="1023" r="9" fill="#334155"/>
 <text x="709" y="1027" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
-<text x="726" y="1027" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Phone looks up TraceHome's address</text>
-<circle cx="709" cy="1067" r="9" fill="#334155"/>
-<text x="709" y="1071" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
-<text x="726" y="1071" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">All traffic enters through the CDN and firewall, over HTTPS</text>
-<circle cx="709" cy="1111" r="9" fill="#334155"/>
-<text x="709" y="1115" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
-<text x="726" y="1115" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Photos come straight from the CDN cache; S3 is read only on a miss</text>
-<circle cx="709" cy="1155" r="9" fill="#334155"/>
-<text x="709" y="1159" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
-<text x="726" y="1159" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Requests the CDN can't cache go through the internet gateway to the</text>
-<text x="726" y="1175" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">load balancer</text>
-<circle cx="709" cy="1199" r="9" fill="#334155"/>
-<text x="709" y="1203" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
-<text x="726" y="1203" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Load balancer shares requests between two zones; one zone can fail</text>
+<text x="726" y="1027" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Route 53 answers with CloudFront's address</text>
+<circle cx="709" cy="1063" r="9" fill="#334155"/>
+<text x="709" y="1067" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+<text x="726" y="1067" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">HTTPS to CloudFront; WAF checks every request</text>
+<circle cx="709" cy="1103" r="9" fill="#334155"/>
+<text x="709" y="1107" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+<text x="726" y="1107" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Photos come from the CloudFront cache; S3 is read only on a miss</text>
+<circle cx="709" cy="1143" r="9" fill="#334155"/>
+<text x="709" y="1147" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
+<text x="726" y="1147" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Uncached requests reach the private load balancer through a VPC origin</text>
+<circle cx="709" cy="1183" r="9" fill="#334155"/>
+<text x="709" y="1187" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
+<text x="726" y="1187" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Load balancer shares requests between two zones; one zone can fail</text>
+<circle cx="709" cy="1223" r="9" fill="#334155"/>
+<text x="709" y="1227" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">6</text>
+<text x="726" y="1227" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Money and permission actions always use the source of truth</text>
 <circle cx="1159" cy="1023" r="9" fill="#334155"/>
-<text x="1159" y="1027" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">6</text>
-<text x="1176" y="1027" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Money and permission actions always use the source of truth</text>
-<circle cx="1159" cy="1067" r="9" fill="#334155"/>
-<text x="1159" y="1071" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">7</text>
-<text x="1176" y="1071" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Searches use the index; workers keep it up to date</text>
-<circle cx="1159" cy="1111" r="9" fill="#334155"/>
-<text x="1159" y="1115" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">8</text>
-<text x="1176" y="1115" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Database copies every change to the standby in zone B</text>
-<circle cx="1159" cy="1155" r="9" fill="#334155"/>
-<text x="1159" y="1159" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">9</text>
-<text x="1176" y="1159" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Files go to S3 through the free gateway endpoint, never the internet</text>
-<circle cx="1159" cy="1199" r="9" fill="#334155"/>
-<text x="1159" y="1203" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">10</text>
-<text x="1176" y="1203" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">AI checks, CRMs, and SMS are called through each zone's NAT gateway</text>
-<circle cx="709" cy="1243" r="9" fill="#B45309"/>
-<text x="709" y="1247" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">11</text>
-<text x="726" y="1247" font-size="12" fill="#0F172A" text-anchor="start">A new photo triggers Lambda: resize, remove GPS data, flag hidden numbers</text>
-<rect x="40" y="1221" width="26" height="22" rx="4" fill="#FDF4FF" stroke="#D946EF" stroke-width="1.5"/>
-<text x="76" y="1231" font-size="12" fill="#0F172A" font-weight="600">AWS Lambda</text>
-<text x="76" y="1245" font-size="11" fill="#64748B">event-driven, outside the VPC</text>
+<text x="1159" y="1027" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">7</text>
+<text x="1176" y="1027" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Searches use the index; workers keep it up to date</text>
+<circle cx="1159" cy="1063" r="9" fill="#334155"/>
+<text x="1159" y="1067" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">8</text>
+<text x="1176" y="1067" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Database copies every change to the standby in zone B</text>
+<circle cx="1159" cy="1103" r="9" fill="#334155"/>
+<text x="1159" y="1107" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">9</text>
+<text x="1176" y="1107" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Files go to S3 through the free gateway endpoint, never the internet</text>
+<circle cx="1159" cy="1143" r="9" fill="#C2410C"/>
+<text x="1159" y="1147" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">10</text>
+<text x="1176" y="1147" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">AI checks, CRMs, and SMS are called through each zone's NAT gateway</text>
+<circle cx="1159" cy="1183" r="9" fill="#B45309"/>
+<text x="1159" y="1187" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">11</text>
+<text x="1176" y="1187" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">New photo triggers Lambda: resize, strip GPS data, flag hidden numbers</text>
 </svg>

@@ -5,7 +5,7 @@ This document turns the agreed requirements into a design. We build it in two st
 1. **Logical architecture:** the parts of the system and how they work together, without naming
    any technology. *(Done.)*
 2. **AWS architecture:** each logical part mapped to AWS services, with a reason for every choice.
-   *(In progress: network, compute, and data are decided.)*
+   *(In progress: network, compute, data, and edge are decided.)*
 
 Separating the stages keeps the reasoning honest. If a part can't be justified without naming a
 product, it probably isn't needed.
@@ -302,13 +302,14 @@ DNS → CDN at the edge → firewall → load balancer → compute → database 
 
 ### The rule
 
-Only the load balancer faces the internet. Everything else is private and accepts traffic only
-from the part directly in front of it.
+Nothing inside the VPC can be reached from the internet. Users reach TraceHome only through
+CloudFront, which connects to a private load balancer over a private path (a VPC origin). Every
+part accepts traffic only from the part directly in front of it.
 
 The diagram shows the **target design**: what we present and defend. The development build is a
 smaller version of it, described at the end of this section.
 
-![TraceHome network architecture: target design](docs/network-architecture.svg)
+![TraceHome AWS architecture: target design](docs/network-architecture.svg)
 
 *Open the image on its own for full size. The source is [docs/network-architecture.svg](docs/network-architecture.svg).*
 
@@ -318,13 +319,13 @@ smaller version of it, described at the end of this section.
 
 | Color | Meaning |
 |---|---|
-| Green | **Public subnet.** Routes to the internet gateway. Only the load balancer and NAT gateways live here |
-| Blue | **Private app subnet.** The application and workers. Calls out through its own zone's NAT gateway; only the load balancer can call in |
+| Green | **Public subnet.** Routes to the internet gateway. Only the NAT gateways live here |
+| Blue | **Private app subnet.** The internal load balancer, the application, and the workers. Calls out through its own zone's NAT gateway; only CloudFront can reach the load balancer |
 | Teal | **Private data subnet.** The database and search index. No internet route at all, in or out |
 | Purple | **The VPC and its doors.** The internet gateway and the S3 gateway endpoint are the only ways in or out |
 | Amber | **Amazon S3.** A regional service outside the VPC |
 | Pink | **AWS Lambda.** Event-driven functions outside the VPC |
-| Orange, dashed | **Edge.** DNS, CDN, and firewall. Decided in the next layer |
+| Orange | **Edge.** Route 53, CloudFront, and AWS WAF, on AWS's global network in front of the Region |
 | Grey dashed outline | **Availability Zone.** A separate data center in the same Region |
 | Dashed box | **Standby.** Used only when something fails |
 
@@ -336,10 +337,10 @@ smaller version of it, described at the end of this section.
 
 | # | What happens | Why it's designed this way |
 |---|---|---|
-| ① | The seeker's phone looks up TraceHome's address | Users never see AWS internals, only a domain name |
-| ② | All traffic arrives at the CDN over HTTPS | The CDN is close to users and filters attacks before they reach AWS |
-| ③ | Photos come straight from the CDN's cache | Most browsing traffic never reaches our servers, which is fast and cheap |
-| ④ | Pages and API calls the CDN can't cache go through the internet gateway to the load balancer | The load balancer accepts traffic from the CDN only, so no one can bypass the firewall |
+| ① | Route 53 answers the phone's lookup with CloudFront's address | Users never see AWS internals, only a domain name |
+| ② | All traffic arrives at CloudFront over HTTPS, and AWS WAF checks every request | CloudFront is close to users, and attacks are filtered before they reach the Region |
+| ③ | Photos come straight from CloudFront's cache | Most browsing traffic never reaches our servers, which is fast and cheap |
+| ④ | Requests CloudFront can't cache reach the internal load balancer through a VPC origin | The load balancer has no public address at all, so no one can bypass the firewall |
 | ⑤ | The load balancer shares requests between two copies of the application in two zones | If one zone fails, the other copy keeps serving |
 | ⑥ | The application and workers read and write the source of truth | Every money and permission action checks here |
 | ⑦ | Searches go to the search index; workers keep it up to date | Heavy browsing never slows down the source of truth |
@@ -356,7 +357,7 @@ delays them.
 
 | Part | Where it lives | Who can reach it |
 |---|---|---|
-| Load balancer | Public subnets, in two zones | The internet, on HTTPS only |
+| Load balancer | Private app subnets, in two zones (internal) | Only CloudFront, through the VPC origin |
 | NAT gateway | Public subnet | Nothing can start a connection to it from outside |
 | Application | Private app subnets | Only the load balancer |
 | Background workers | Private app subnets | No one. They pull work from a queue; nothing calls into them |
@@ -367,9 +368,9 @@ delays them.
 **Visible to the public is not the same as open to the public.** Both buckets stay private, with
 Block Public Access turned on:
 
-- Photos reach users through the CDN, and only the CDN has permission to read the public files
+- Photos reach users through CloudFront, and only CloudFront has permission to read the public files
   bucket.
-- Verification documents never go through the CDN. A reviewer gets a link that expires after a few
+- Verification documents never go through CloudFront. A reviewer gets a link that expires after a few
   minutes, and every access is recorded.
 
 Keeping the two buckets apart limits the blast radius: one wrong permission setting can expose
@@ -379,8 +380,8 @@ only listing photos, which are public anyway, never identity documents.
 
 | Layer | Contains | Route to the internet |
 |---|---|---|
-| Public | Load balancer, NAT gateway | Directly, through the internet gateway |
-| Private app | Application, background workers | Outbound only, through the NAT gateway |
+| Public | NAT gateways only | Directly, through the internet gateway |
+| Private app | Internal load balancer, application, background workers | Outbound only, through the NAT gateway |
 | Private data | Database, search index | None. Data can't leave by any internet path |
 
 The data layer has no route to the internet at all. Even if an attacker got into the database
@@ -402,7 +403,7 @@ the rules keep working when containers change addresses.
 
 | Security group | Allows in | From |
 |---|---|---|
-| Load balancer | HTTPS (443) | The internet |
+| Load balancer | HTTPS (443) | CloudFront's VPC origin only |
 | Application | The application port | The load balancer's security group only |
 | Workers | Nothing | No one |
 | Database | The database port | The application and workers security groups only |
@@ -605,3 +606,81 @@ isn't always the fastest. Before launch we'd measure latency from Addis Ababa to
 and compare prices (Cape Town and UAE cost more than us-east-1), service availability, and the
 legal advice on data localization.
 
+## Edge: DNS, CDN, and firewall
+
+### The path of a request
+
+```text
+Phone asks "where is tracehome.com?"
+  → Route 53 answers with an alias record pointing to CloudFront
+  → The phone connects to the nearest CloudFront location over HTTPS
+      (CloudFront shows the ACM certificate; the phone checks it)
+  → AWS WAF checks the request
+  → Cached? CloudFront answers immediately
+  → Not cached? CloudFront forwards it over a private path (VPC origin) to the internal load balancer
+```
+
+### CloudFront: what is cached, and for how long
+
+| Content | Cached for | Why |
+|---|---|---|
+| App files (JavaScript, CSS) | A year | Each build gets new file names, so old copies are never served by mistake |
+| Listing photos | A long time | A changed photo gets a new address, so cached copies never go stale |
+| Public listing pages and search results | **60 seconds at most** | A removed listing must disappear within 1 minute; the cache time follows that business rule |
+| Credit balance, unlock results, contact details, workspace, leads | **Never** | They depend on who is asking |
+| Verification documents | **Never through CloudFront** | Expiring links straight from S3 |
+
+**The rule:** if a response depends on who is asking, it is never cached. Those requests still
+pass through CloudFront for the firewall and HTTPS, but go straight to the application.
+
+**Why the default is "don't cache":** a single mistake could cache one seeker's balance page and
+show it to another. We turn caching on only for public paths.
+
+**The search index holds public listing data only.** Balances, contacts, and other personal or
+financial data are never copied there.
+
+### The private load balancer
+
+CloudFront reaches the load balancer through a **VPC origin**: a private connection into our
+private subnets. The load balancer has no public address, so:
+
+- nothing in the VPC can be reached from the internet, and
+- no one can skip the firewall by calling the load balancer directly.
+
+The VPC still has an internet gateway, but it's used only for outbound calls through the NAT
+gateways.
+
+### AWS WAF: the first layer, not the only one
+
+WAF sees HTTP requests. It can't tell whether a review is honest or an account is fake. It slows
+automated abuse cheaply; TraceHome's business rules stop what gets through.
+
+| Threat | WAF (layer 1) | TraceHome's rules (layer 2, the real defense) |
+|---|---|---|
+| Contact harvesting | Rate limits on listing and unlock requests; Bot Control blocks known scrapers | Every contact costs a credit; a limit on unlocks per account |
+| Fake accounts | Account creation fraud prevention; CAPTCHA on sign-up | Phone confirmation by one-time code; bonus credits once per phone number; trust levels |
+| Review attacks | Rate limits on posting reviews | Only seekers who unlocked a contact and reported a viewing can review; unusual patterns become review cases |
+| Scraping public listings | Bot Control and rate limits | Acceptable to a degree; the data is public |
+| SQL injection, cross-site scripting | AWS managed rule sets | Parameterized queries in the code |
+| DDoS | AWS Shield Standard, free and automatic on CloudFront | — |
+
+### Route 53 and certificates
+
+| Part | What it does |
+|---|---|
+| Route 53 hosted zone | Holds TraceHome's DNS records |
+| Alias record | Points the domain to CloudFront. Works on the bare domain (tracehome.com), where a CNAME isn't allowed, and alias queries to AWS resources are free |
+| ACM certificate | Proves the site really is TraceHome and enables HTTPS. Free, and renewed automatically |
+| DNS validation | ACM proves we own the domain by checking a DNS record it asks us to add. Route 53 can add it automatically |
+
+**Where certificates are created:** the certificate CloudFront uses must be created in
+**us-east-1**, wherever the application runs, because CloudFront is a global service managed from
+there. A certificate for a load balancer is created in the load balancer's own Region.
+
+### Target versus development build
+
+| | Target design | Development build | What we accept |
+|---|---|---|---|
+| Domain | Our own domain in Route 53 | CloudFront's default address (`something.cloudfront.net`), which already has a valid certificate | A less friendly address for the demo |
+| WAF | Managed rules, IP reputation, rate limits, Bot Control, fraud prevention on sign-up | Managed rules and rate limits only | Weaker bot defense for made-up data |
+| Caching | As in the table above | The same | No difference |
