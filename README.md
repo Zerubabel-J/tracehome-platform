@@ -5,7 +5,7 @@ A trusted property platform for selling and renting homes, starting in Addis Aba
 **Team:** Getasil Desaleng, Seid Endris, Zerubabel Jember (Evangadi AWS, Group 9)
 
 > **Status: AWS architecture design.** Requirements and the logical architecture are agreed. We're
-> now mapping each part to AWS, one layer at a time. The network is decided.
+> now mapping each part to AWS, one layer at a time. Network and compute are decided.
 
 ## Why this repository exists
 
@@ -107,6 +107,10 @@ decision with a better argument or new evidence. Decided items move to the decis
 | 32 | 8 Nov | S3 gateway endpoint for files, NAT for external calls, interface endpoints only when justified | Gateway endpoint is free; interface endpoints cost money per zone | Traffic or security needs justify more endpoints |
 | 33 | 8 Nov | Two zones for the parts users wait on; one zone for queued or rebuildable parts | Pay for high availability only where failure hurts | Measurements show a part needs more |
 | 34 | 8 Nov | We describe a target design and a cheaper development build, and state every difference | The budget can't pay for the target, and we say so openly | Real users arrive |
+| 35 | 9 Nov | The application and workers run on ECS with Fargate, from one container image, as two services | No servers to manage; one copy of the business rules | Costs or limits make EC2 clearly better |
+| 36 | 9 Nov | Lambda handles event-driven jobs that never touch the source of truth, starting with photo processing | Fits short, event-driven work; avoids database connection problems | A Lambda job starts needing business rules |
+| 37 | 9 Nov | Workers scale on queue depth and run on Fargate Spot in the development build | Queued jobs survive interruptions, so the cheaper option is safe | Interruptions delay work too much |
+| 38 | 9 Nov | The development build runs only when needed, with budget alerts set before the first deploy | Credits would run out in about a month if always on | More credits or a smaller build |
 
 ### Our edge over Telegram groups
 

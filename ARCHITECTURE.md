@@ -5,7 +5,7 @@ This document turns the agreed requirements into a design. We build it in two st
 1. **Logical architecture:** the parts of the system and how they work together, without naming
    any technology. *(Done.)*
 2. **AWS architecture:** each logical part mapped to AWS services, with a reason for every choice.
-   *(In progress: the network is decided.)*
+   *(In progress: network and compute are decided.)*
 
 Separating the stages keeps the reasoning honest. If a part can't be justified without naming a
 product, it probably isn't needed.
@@ -323,6 +323,7 @@ smaller version of it, described at the end of this section.
 | Teal | **Private data subnet.** The database and search index. No internet route at all, in or out |
 | Purple | **The VPC and its doors.** The internet gateway and the S3 gateway endpoint are the only ways in or out |
 | Amber | **Amazon S3.** A regional service outside the VPC |
+| Pink | **AWS Lambda.** Event-driven functions outside the VPC |
 | Orange, dashed | **Edge.** DNS, CDN, and firewall. Decided in the next layer |
 | Grey dashed outline | **Availability Zone.** A separate data center in the same Region |
 | Dashed box | **Standby.** Used only when something fails |
@@ -345,6 +346,7 @@ smaller version of it, described at the end of this section.
 | ⑧ | The database copies every change to a standby in zone B | If zone A fails, the standby takes over in 1–2 minutes with no lost data |
 | ⑨ | Files go to S3 through the free gateway endpoint | No NAT charges for the largest traffic, and files never cross the internet |
 | ⑩ | Calls to AI checks, CRMs, and SMS go out through each zone's NAT gateway | Private parts can call out, but nothing outside can start a connection in |
+| ⑪ | A new photo in the photos bucket triggers a Lambda function that resizes it, removes GPS location data, and flags hidden phone numbers | Short, event-driven work that never touches the source of truth. Runs outside the VPC, so no NAT cost |
 
 **What's deliberately in one zone:** the background workers and the search index. Work waits
 safely in the queue, and the index can be rebuilt from the source of truth, so a zone failure only
@@ -447,3 +449,66 @@ that can be rebuilt, can live in one zone.
 
 **For the presentation:** "This is the architecture TraceHome needs. For the demo we run a cheaper
 version, and we switch on Multi-AZ when there are real users."
+
+## Compute
+
+### The decision
+
+| Workload | Runs on | Scales on |
+|---|---|---|
+| The application (marketplace and workspace) | **ECS on Fargate**, two or more tasks across two zones | Request load from the load balancer |
+| Background workers | **ECS on Fargate**, same container image, separate ECS service | Number of jobs waiting in the queue |
+| Photo processing | **AWS Lambda**, outside the VPC | Automatic, one run per uploaded photo |
+
+### What each option makes us responsible for
+
+| Option | We manage | AWS manages | Verdict |
+|---|---|---|---|
+| EC2 | Operating system patches, security agents, scaling instances, disks, capacity, plus everything below | Hardware and the hypervisor | Rejected. Our effort would go to running servers, not the product |
+| ECS on Fargate | Container image, task size, task definition, health checks, scaling rules, an IAM role per task | Servers, operating system, patching, placing containers | **Chosen** for the application and workers |
+| Lambda | Function code and its settings | Everything else, including scaling to zero | **Chosen** for photo processing only |
+
+ECS and Fargate are two different things. **ECS** is the orchestrator: it keeps the right number of
+tasks running, replaces unhealthy ones, and rolls out deployments. **Fargate** is the compute those
+tasks run on, so there are no servers for us to manage.
+
+### Why not Lambda for the main application
+
+- **Database connections.** Every Lambda copy opens its own connection. A traffic spike could open
+  hundreds of them and overload the source of truth.
+- **Cold starts.** A modular application is large and loads slowly, so the first request after a
+  quiet period would be slow.
+- **Wrong shape.** Lambda suits small, single-purpose functions. Splitting the application to fit
+  Lambda would undo our decision to keep it as one modular application.
+
+### Which jobs go where
+
+**The rule:** a job that needs TraceHome's business rules runs in a worker container. A short job
+that reacts to an AWS event and never touches the source of truth can be a Lambda function.
+
+| Job | Runs on | Why |
+|---|---|---|
+| Lead delivery, retries, failed deliveries | ECS worker | Uses the outbox and ledger rules, and may retry for a long time |
+| Updating the search index | ECS worker | Reads the source of truth continuously |
+| Bonus credit expiry, ledger reconciliation | ECS worker, started on a schedule | Changes money, so it must use the same tested ledger code as unlocking |
+| Review case automation and AI checks | ECS worker | Writes review cases and trust levels |
+| Photo processing | Lambda | Triggered by an upload. Resizes the photo, removes GPS location data, and sends any detected phone numbers to the workers' queue |
+
+**Why the workers share the application's container image:** there's one build and one copy of the
+business rules, so a worker can never disagree with the application about how credits work. They
+run as separate ECS services, so each scales on its own signal.
+
+**The cost of using Lambda too:** a second way to deploy, log, and grant permissions. We accept it
+because it's limited to one clear job that fits Lambda well.
+
+### Target versus development build
+
+| | Target design | Development build | What we accept |
+|---|---|---|---|
+| Application | Two or more tasks across two zones | One task | Short downtime during deployments or failures |
+| Workers | Regular Fargate | Fargate Spot, up to about 70% cheaper | A worker can be interrupted. Safe, because jobs wait in the queue and are retried |
+| Running time | Always on | Started for working sessions and the demo, then torn down | The system isn't available between sessions |
+
+**Budget rule:** AWS Budgets alerts at $10, $25, and $50 are set up before anything is deployed.
+Run around the clock, the development build would cost about $80–90 a month, more than our credits.
+

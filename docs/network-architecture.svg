@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1270" viewBox="0 0 1600 1270" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1290" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" preserveAspectRatio="xMidYMin meet" style="display:block;margin:0 auto;max-width:1600px;width:100%">
 <defs><marker id="m334155" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker><marker id="m0F766E" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0F766E"/></marker><marker id="mB45309" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B45309"/></marker><marker id="m7C3AED" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker><marker id="mC2410C" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C2410C"/></marker></defs>
-<rect width="1600" height="1270" fill="#FFFFFF"/>
+<rect width="1600" height="1290" fill="#FFFFFF"/>
 <text x="40" y="44" font-size="24" fill="#0F172A" font-weight="700" text-anchor="start">TraceHome · Network architecture</text>
 <text x="40" y="68" font-size="13" fill="#64748B" font-weight="400" text-anchor="start">Target design · one AWS Region · two Availability Zones · only the load balancer faces the internet</text>
 <rect x="400" y="155" width="640" height="105" rx="10" fill="#FFF7ED" stroke="#D97706" stroke-width="1.5" stroke-dasharray="6 4"/>
@@ -70,15 +70,15 @@
 <text x="915.0" y="482.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">outbound only</text>
 <rect x="110" y="580" width="150" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
 <text x="185.0" y="605.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Background workers</text>
-<text x="185.0" y="621.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">pull work from a queue</text>
+<text x="185.0" y="621.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS on Fargate</text>
 <text x="185.0" y="638.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: no inbound</text>
 <rect x="330" y="580" width="190" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
 <text x="425.0" y="605.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Application · copy A</text>
-<text x="425.0" y="621.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">the modular application</text>
+<text x="425.0" y="621.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS on Fargate · one image</text>
 <text x="425.0" y="638.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: load balancer only</text>
 <rect x="640" y="580" width="190" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
 <text x="735.0" y="605.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Application · copy B</text>
-<text x="735.0" y="621.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">the modular application</text>
+<text x="735.0" y="621.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS on Fargate · one image</text>
 <text x="735.0" y="638.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: load balancer only</text>
 <rect x="845" y="580" width="140" height="75" rx="8" fill="#F8FAFC" stroke="#1D4ED8" stroke-width="2" stroke-dasharray="6 4"/>
 <text x="915.0" y="605.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Workers (standby)</text>
@@ -131,10 +131,20 @@
 <circle cx="805.75" cy="145" r="8" fill="#334155"/>
 <text x="805.75" y="149" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
 <text x="818.75" y="149" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">HTTPS</text>
-<rect x="1413.15" y="420" width="133.7" height="20" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="1.2"/>
-<circle cx="1424.15" cy="430" r="8" fill="#B45309"/>
-<text x="1424.15" y="434" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
-<text x="1437.15" y="434" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">photos from cache</text>
+<path d="M1410,575 V445" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<path d="M1450,445 V575" fill="none" stroke="#B45309" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<rect x="1180" y="350" width="290" height="95" rx="8" fill="#FFFFFF" stroke="#D946EF" stroke-width="2"/>
+<text x="1325" y="376" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Photo processing</text>
+<text x="1325" y="393" font-size="11" fill="#64748B" text-anchor="middle">AWS Lambda · outside the VPC, no database access</text>
+<text x="1325" y="410" font-size="11" fill="#64748B" text-anchor="middle">resizes photos · removes GPS location data</text>
+<text x="1325" y="427" font-size="11" fill="#64748B" text-anchor="middle">flags hidden phone numbers → workers' queue</text>
+<rect x="1399" y="465" width="24" height="20" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="1.2"/>
+<circle cx="1411" cy="475" r="8" fill="#B45309"/>
+<text x="1411" y="479" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">11</text>
+<rect x="1413.15" y="310" width="133.7" height="20" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="1.2"/>
+<circle cx="1424.15" cy="320" r="8" fill="#B45309"/>
+<text x="1424.15" y="324" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+<text x="1437.15" y="324" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">photos from cache</text>
 <rect x="662.05" y="270" width="145.89999999999998" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
 <circle cx="673.05" cy="280" r="8" fill="#334155"/>
 <text x="673.05" y="284" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
@@ -230,4 +240,10 @@
 <circle cx="1159" cy="1199" r="9" fill="#334155"/>
 <text x="1159" y="1203" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">10</text>
 <text x="1176" y="1203" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">AI checks, CRMs, and SMS are called through each zone's NAT gateway</text>
+<circle cx="709" cy="1243" r="9" fill="#B45309"/>
+<text x="709" y="1247" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">11</text>
+<text x="726" y="1247" font-size="12" fill="#0F172A" text-anchor="start">A new photo triggers Lambda: resize, remove GPS data, flag hidden numbers</text>
+<rect x="40" y="1221" width="26" height="22" rx="4" fill="#FDF4FF" stroke="#D946EF" stroke-width="1.5"/>
+<text x="76" y="1231" font-size="12" fill="#0F172A" font-weight="600">AWS Lambda</text>
+<text x="76" y="1245" font-size="11" fill="#64748B">event-driven, outside the VPC</text>
 </svg>
