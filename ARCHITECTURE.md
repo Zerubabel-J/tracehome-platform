@@ -5,7 +5,7 @@ This document turns the agreed requirements into a design. We build it in two st
 1. **Logical architecture:** the parts of the system and how they work together, without naming
    any technology. *(Done.)*
 2. **AWS architecture:** each logical part mapped to AWS services, with a reason for every choice.
-   *(In progress: network and compute are decided.)*
+   *(In progress: network, compute, and data are decided.)*
 
 Separating the stages keeps the reasoning honest. If a part can't be justified without naming a
 product, it probably isn't needed.
@@ -511,4 +511,97 @@ because it's limited to one clear job that fits Lambda well.
 
 **Budget rule:** AWS Budgets alerts at $10, $25, and $50 are set up before anything is deployed.
 Run around the clock, the development build would cost about $80–90 a month, more than our credits.
+
+## Data: the source of truth
+
+### The decision
+
+The source of truth is **PostgreSQL on Amazon RDS**: Multi-AZ in the target design, single zone in
+the development build.
+
+### Why relational, not NoSQL
+
+"Our data is related" is not the real reason; DynamoDB can model relationships too. The real reason
+is **guarantees**. Unlocking a contact must do four things together, or none of them:
+
+1. Take one credit from the right lot (bonus credits first, oldest first)
+2. Add an entry to the ledger
+3. Record the unlock for this seeker and listing
+4. Save the "lead created" event for background delivery (the outbox)
+
+| Business rule | How PostgreSQL enforces it |
+|---|---|
+| All four steps happen, or none | **One transaction.** If any step fails, the others are undone |
+| One unlock per seeker per listing | **A unique constraint** on (seeker, listing). Two taps at the same moment can't both succeed |
+| A credit is never spent twice | **Row locks** on the credit lot while the transaction runs |
+| A balance never goes negative | **A check constraint**, enforced even if the code has a bug |
+| Every credit change can be explained | **Free-form SQL** for reconciliation and audits, without planning every query in advance |
+
+DynamoDB could do this with transactions and conditional writes, but we'd build by hand what
+PostgreSQL gives us for free. Its main strength, very large scale with predictable speed, doesn't
+help at our size.
+
+### Why RDS, not Aurora
+
+| | RDS PostgreSQL | Aurora PostgreSQL |
+|---|---|---|
+| Storage | Disk attached to the instance | Six copies across three zones, grows automatically |
+| Failover to another zone | About 1–2 minutes | About 30 seconds |
+| Region failure | Restore from copied backups | Global Database: about 1 second of data loss, about a minute to recover |
+| Smallest sensible size | About $13 a month | About $55 a month, plus storage and I/O |
+
+We accepted downtime when a Region fails, a 1–2 minute zone failover meets our target, and searches
+go to the search index, not the database. Aurora's strengths are real, but we don't need them yet.
+
+**What would change it:** a need to recover from a Region failure within minutes, or reads that
+outgrow one database. Moving is straightforward: create an Aurora read replica of the RDS
+database, then promote it.
+
+### Backups and recovery
+
+Each recovery target in the requirements needs its own mechanism.
+
+| Event | Target | How we meet it |
+|---|---|---|
+| A zone fails | Automatic, within minutes | The Multi-AZ standby takes over in about 1–2 minutes, with no data lost |
+| Data deleted by mistake | Back within 1 hour, losing at most 5 minutes of data | **Point-in-time recovery.** RDS keeps daily snapshots and uploads transaction logs about every 5 minutes, so we can restore to any second up to about 5 minutes ago |
+| The whole Region fails | Hours to a day | **Cross-Region backup replication** copies snapshots and transaction logs to a second Region. Terraform rebuilds the network and compute there, then we restore the database |
+
+**Three things to remember:**
+
+1. **Multi-AZ is not a backup.** A mistaken delete reaches the standby within milliseconds.
+   Multi-AZ protects against a zone failing, not against mistakes.
+2. **A restore creates a new database.** We restore to a new instance, check it, then point the
+   application at it. For a small database this takes roughly 15–30 minutes.
+3. **An untested backup is only a hope.** We test a restore before the demo and record how long it
+   really took.
+
+| Other data | Protection |
+|---|---|
+| Photos and documents (S3) | **Versioning** undoes accidental deletes and overwrites; **cross-Region replication** to the second Region |
+| Search index | Not backed up. Rebuilt from the database |
+| Queued jobs | Not backed up. The outbox in the database is the real record; jobs are re-created from it |
+| The backups themselves | Locked against deletion with AWS Backup Vault Lock, so stolen credentials can't wipe them |
+
+### Target versus development build
+
+| | Target design | Development build | What we accept |
+|---|---|---|---|
+| Database | Multi-AZ | Single zone, automated backups kept 7 days, point-in-time recovery on | A zone failure means restoring from backup |
+| Cross-Region copies | Database backups and S3 files | One database backup copy, to practise Region recovery | Less S3 protection for made-up data |
+| Backup lock | AWS Backup Vault Lock | Not used | Fine for made-up data |
+| Tearing down | Not applicable | **Always take a final snapshot** before deleting the database | Without it, the data is gone |
+
+## Region
+
+| | Region | Why |
+|---|---|---|
+| Development build | **us-east-1** (N. Virginia), backups copied to **us-west-2** (Oregon) | Lowest prices, every service available, and the most documentation. Speed for users in Ethiopia doesn't matter with made-up data |
+| Production, later | **To decide by measurement** | Candidates: af-south-1 (Cape Town), me-central-1 (UAE), and eu-central-1 (Frankfurt) |
+
+**Why measure instead of choosing the nearest Region on the map:** internet traffic from Addis Ababa
+follows undersea cables, often through Djibouti towards Europe or the Gulf, so the nearest Region
+isn't always the fastest. Before launch we'd measure latency from Addis Ababa to each candidate,
+and compare prices (Cape Town and UAE cost more than us-east-1), service availability, and the
+legal advice on data localization.
 

@@ -5,7 +5,7 @@ A trusted property platform for selling and renting homes, starting in Addis Aba
 **Team:** Getasil Desaleng, Seid Endris, Zerubabel Jember (Evangadi AWS, Group 9)
 
 > **Status: AWS architecture design.** Requirements and the logical architecture are agreed. We're
-> now mapping each part to AWS, one layer at a time. Network and compute are decided.
+> now mapping each part to AWS, one layer at a time. Network, compute, and data are decided.
 
 ## Why this repository exists
 
@@ -111,6 +111,13 @@ decision with a better argument or new evidence. Decided items move to the decis
 | 36 | 9 Nov | Lambda handles event-driven jobs that never touch the source of truth, starting with photo processing | Fits short, event-driven work; avoids database connection problems | A Lambda job starts needing business rules |
 | 37 | 9 Nov | Workers scale on queue depth and run on Fargate Spot in the development build | Queued jobs survive interruptions, so the cheaper option is safe | Interruptions delay work too much |
 | 38 | 9 Nov | The development build runs only when needed, with budget alerts set before the first deploy | Credits would run out in about a month if always on | More credits or a smaller build |
+| 39 | 9 Nov | The source of truth is PostgreSQL on Amazon RDS, Multi-AZ in the target design | Money and permissions need transactions, constraints, and audit queries | Scale or access patterns outgrow one relational database |
+| 40 | 9 Nov | Money and permission rules are also enforced inside the database: transactions, unique and check constraints, row locks | The database catches what a code bug misses | None expected |
+| 41 | 9 Nov | RDS rather than Aurora | Aurora's strengths (fast Region recovery, read scaling) aren't needed yet | Recovery targets tighten, or reads outgrow one database |
+| 42 | 9 Nov | Point-in-time recovery for mistakes; cross-Region copies of database backups and S3 files for Region failure; Multi-AZ isn't a backup | Each failure needs its own protection | Recovery targets change |
+| 43 | 9 Nov | A restore is tested before the demo, and its real duration recorded | An untested backup is only a hope | None expected |
+| 44 | 9 Nov | The development build runs in us-east-1, with backups copied to us-west-2 | Lowest prices, every service, made-up data only | Real users arrive |
+| 45 | 9 Nov | The production Region is chosen by measured speed from Addis Ababa and by legal advice; candidates are Cape Town, UAE, and Frankfurt | The nearest Region on a map isn't always the fastest | Legal advice requires storage in Ethiopia |
 
 ### Our edge over Telegram groups
 
