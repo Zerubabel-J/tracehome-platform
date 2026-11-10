@@ -298,6 +298,53 @@ DNS → CDN at the edge → firewall → load balancer → compute → database 
 - **Development build:** what we actually run now, within a budget of about $30. Every difference
   is a conscious choice with a reason, and we know how to switch it on later.
 
+## The architecture at a glance
+
+One master diagram shows the whole target design: the network, where every part lives, and how
+work flows through it. It is presented one journey at a time, with the rest of the diagram faded.
+
+![TraceHome AWS architecture: target design](docs/architecture.svg)
+
+*Open the image on its own for full size. The source is [docs/architecture.svg](docs/architecture.svg).*
+
+**For the presentation:** an interactive version lights up each journey, with steps, talking
+points, and expected questions: [TraceHome Architecture](https://claude.ai/artifact/BHocuNmppuiZ96L7uuC2SX).
+Keys: ← → change journey, 0–4 jump to one.
+
+**One journey at a time:** the same diagram with one journey highlighted.
+
+| Journey | Image | What it shows |
+|---|---|---|
+| Browsing (B1–B5) | [architecture-browse.svg](docs/architecture-browse.svg) | Route 53 → CloudFront and WAF → VPC origin → internal load balancer → app → search index or database |
+| Unlocking a contact (U1–U5) | [architecture-unlock.svg](docs/architecture-unlock.svg) | One transaction with the outbox → outbox relay → SQS through its endpoint → delivery worker → CRM, with retries and a DLQ |
+| Uploading a photo (P1–P6) | [architecture-upload.svg](docs/architecture-upload.svg) | Presigned upload → incoming bucket → GuardDuty → EventBridge → SQS → Lambda and Rekognition → photos bucket |
+| Failure and recovery (R1–R4) | [architecture-recovery.svg](docs/architecture-recovery.svg) | Zone failover, workers restarting, dead-letter queues and alarms, backups in a second Region |
+
+The [event view](#background-processing-the-event-view) shows each background flow in more detail,
+including every failure branch.
+
+### How to read the diagram
+
+| Color | Meaning |
+|---|---|
+| Green | **Public subnet.** Routes to the internet gateway. Only the NAT gateways live here |
+| Blue | **Private app subnet.** The internal load balancer, the application, and the workers |
+| Teal | **Private data subnet.** The database and search index. No internet route at all, and a network ACL that allows only the app subnets |
+| Purple | **The VPC and its endpoints.** The internet gateway (outbound only), the SQS interface endpoint, and the S3 gateway endpoint |
+| Grey dashed outline | **Availability Zone**, or the group of regional services outside the VPC |
+| Orange | **Edge.** Route 53, CloudFront, and AWS WAF, on AWS's global network |
+| Amber | **Amazon S3.** Three buckets: incoming, documents, and photos |
+| Pink | **AWS Lambda.** Photo checks, outside the VPC |
+| Rose | **SQS and EventBridge.** Queues with dead-letter queues, and event routing |
+| Red fill | **Security scanning.** GuardDuty Malware Protection |
+| Slate, top right | **Account-wide services.** CloudWatch, CloudTrail, GuardDuty, Systems Manager, AWS Backup, IAM, and Budgets |
+| Dashed box | **Standby.** Used only when something fails |
+
+**Lines:** dark lines are requests and data access, blue lines are the lead flow, amber lines
+carry files, rose lines are queued or routed events, dashed red lines are outbound calls (never
+inbound), and the dashed teal line is database replication. **SG** means security group: the only
+traffic each part accepts.
+
 ## Network
 
 ### The rule
@@ -306,50 +353,8 @@ Nothing inside the VPC can be reached from the internet. Users reach TraceHome o
 CloudFront, which connects to a private load balancer over a private path (a VPC origin). Every
 part accepts traffic only from the part directly in front of it.
 
-The diagram shows the **target design**: what we present and defend. The development build is a
-smaller version of it, described at the end of this section.
-
-![TraceHome AWS architecture, network view: target design](docs/network-architecture.svg)
-
-*Open the image on its own for full size. The source is [docs/network-architecture.svg](docs/network-architecture.svg).*
-
-### How to read the diagram
-
-**Colors**
-
-| Color | Meaning |
-|---|---|
-| Green | **Public subnet.** Routes to the internet gateway. Only the NAT gateways live here |
-| Blue | **Private app subnet.** The internal load balancer, the application, and the workers. Calls out through its own zone's NAT gateway; only CloudFront can reach the load balancer |
-| Teal | **Private data subnet.** The database and search index. No internet route at all, in or out |
-| Purple | **The VPC and its doors.** The internet gateway and the S3 gateway endpoint are the only ways in or out |
-| Rose | **Amazon SQS.** Queues that hold work, each with a dead-letter queue |
-| Slate, top right | **Account-wide services.** Operations and security that cover the whole AWS account |
-| Amber | **Amazon S3.** A regional service outside the VPC |
-| Pink | **AWS Lambda.** Event-driven functions outside the VPC |
-| Orange | **Edge.** Route 53, CloudFront, and AWS WAF, on AWS's global network in front of the Region |
-| Grey dashed outline | **Availability Zone.** A separate data center in the same Region |
-| Dashed box | **Standby.** Used only when something fails |
-
-**Lines:** solid dark lines are requests and data access, dashed red lines are outbound calls
-(never inbound), the dashed teal line is database replication, and amber lines are file traffic.
-**SG** means security group: the only traffic each part accepts.
-
-**Following the numbers**
-
-| # | What happens | Why it's designed this way |
-|---|---|---|
-| ① | Route 53 answers the phone's lookup with CloudFront's address | Users never see AWS internals, only a domain name |
-| ② | All traffic arrives at CloudFront over HTTPS, and AWS WAF checks every request | CloudFront is close to users, and attacks are filtered before they reach the Region |
-| ③ | Photos come straight from CloudFront's cache | Most browsing traffic never reaches our servers, which is fast and cheap |
-| ④ | Requests CloudFront can't cache reach the internal load balancer through a VPC origin | The load balancer has no public address at all, so no one can bypass the firewall |
-| ⑤ | The load balancer shares requests between two copies of the application in two zones | If one zone fails, the other copy keeps serving |
-| ⑥ | The application and workers read and write the source of truth | Every money and permission action checks here |
-| ⑦ | Searches go to the search index; workers keep it up to date | Heavy browsing never slows down the source of truth |
-| ⑧ | The database copies every change to a standby in zone B | If zone A fails, the standby takes over in 1–2 minutes with no lost data |
-| ⑨ | Files go to S3 through the free gateway endpoint | No NAT charges for the largest traffic, and files never cross the internet |
-| ⑩ | Calls to AI checks, CRMs, and SMS go out through each zone's NAT gateway | Private parts can call out, but nothing outside can start a connection in |
-| ⑪ | Uploads land in a private incoming bucket. After GuardDuty finds no malware, the photo is queued, checked by a Lambda function with Rekognition, cleaned (resized, GPS removed), and published to the photos bucket only if approved | Nothing unscanned or unchecked can ever be served. The event view below shows every step and failure path |
+The master diagram in [The architecture at a glance](#the-architecture-at-a-glance) shows this
+network with everything else on top of it.
 
 **What's deliberately in one zone:** the background workers and the search index. Work waits
 safely in the queue, and the index can be rebuilt from the source of truth, so a zone failure only
@@ -434,7 +439,8 @@ outside.
 |---|---|---|
 | S3 (photos, documents) | S3 gateway endpoint | Free, and photo traffic is the largest. Traffic stays inside AWS |
 | AI checks, CRM webhooks, SMS | NAT gateway | The only way out to the internet for private subnets. Replies come back; new connections from outside can't come in |
-| Other AWS services (queues, secrets, logs) | NAT gateway for now | An interface endpoint costs about $7 a month per zone. We add one when traffic or security justifies it |
+| SQS (lead and photo-result queues) | **SQS interface endpoint** | Queuing keeps working even if NAT fails, and lead details (personal data) never leave AWS's network. About $7 a month per zone, so it's in the target design but not the development build |
+| Other AWS services (secrets, logs, container images) | NAT gateway for now | An interface endpoint costs about $7 a month per zone. We add one when traffic or security justifies it |
 
 **Not used here, and why.** VPC peering and Transit Gateway connect one network to another (VPC to
 VPC, or VPC to an office datacenter). They don't give a private subnet a way out to the internet

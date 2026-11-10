@@ -131,7 +131,9 @@ decision with a better argument or new evidence. Decided items move to the decis
 | 56 | 10 Nov | A network ACL on the data subnets allows only the app subnets | Second layer if a security group is misconfigured | None expected |
 | 57 | 10 Nov | CloudWatch alarms, CloudTrail, GuardDuty, and Budgets from day one | We notice problems before users do | None expected |
 | 58 | 10 Nov | EventBridge routes malware scan results and schedules jobs; scheduled jobs run as ECS tasks from the worker image | One event router; money jobs reuse tested code | None expected |
-| 59 | 10 Nov | The architecture is shown in two views: network (where things live) and event (how work flows) | One picture can't show both clearly | None expected |
+| 59 | 10 Nov | One master diagram shows the network and the event flows together; it's presented one journey at a time, with the event view as a deep dive | The audience sees one picture; each teammate can present one journey | None expected |
+| 60 | 10 Nov | An SQS interface endpoint in the target design; not in the development build | Queuing survives a NAT failure, and lead data stays inside AWS | Cost outweighs the benefit at very low volume |
+| 61 | 10 Nov | An interactive presenter page for the live presentation, plus static images of each journey in the repository | Live walkthrough for Zoom; images for anyone reviewing later | None expected |
 
 ### Our edge over Telegram groups
 
