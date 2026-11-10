@@ -5,7 +5,7 @@ This document turns the agreed requirements into a design. We build it in two st
 1. **Logical architecture:** the parts of the system and how they work together, without naming
    any technology. *(Done.)*
 2. **AWS architecture:** each logical part mapped to AWS services, with a reason for every choice.
-   *(In progress: network, compute, data, and edge are decided.)*
+   *(In progress: network, compute, data, edge, background processing, and operations are decided.)*
 
 Separating the stages keeps the reasoning honest. If a part can't be justified without naming a
 product, it probably isn't needed.
@@ -309,7 +309,7 @@ part accepts traffic only from the part directly in front of it.
 The diagram shows the **target design**: what we present and defend. The development build is a
 smaller version of it, described at the end of this section.
 
-![TraceHome AWS architecture: target design](docs/network-architecture.svg)
+![TraceHome AWS architecture, network view: target design](docs/network-architecture.svg)
 
 *Open the image on its own for full size. The source is [docs/network-architecture.svg](docs/network-architecture.svg).*
 
@@ -323,6 +323,8 @@ smaller version of it, described at the end of this section.
 | Blue | **Private app subnet.** The internal load balancer, the application, and the workers. Calls out through its own zone's NAT gateway; only CloudFront can reach the load balancer |
 | Teal | **Private data subnet.** The database and search index. No internet route at all, in or out |
 | Purple | **The VPC and its doors.** The internet gateway and the S3 gateway endpoint are the only ways in or out |
+| Rose | **Amazon SQS.** Queues that hold work, each with a dead-letter queue |
+| Slate, top right | **Account-wide services.** Operations and security that cover the whole AWS account |
 | Amber | **Amazon S3.** A regional service outside the VPC |
 | Pink | **AWS Lambda.** Event-driven functions outside the VPC |
 | Orange | **Edge.** Route 53, CloudFront, and AWS WAF, on AWS's global network in front of the Region |
@@ -347,7 +349,7 @@ smaller version of it, described at the end of this section.
 | ⑧ | The database copies every change to a standby in zone B | If zone A fails, the standby takes over in 1–2 minutes with no lost data |
 | ⑨ | Files go to S3 through the free gateway endpoint | No NAT charges for the largest traffic, and files never cross the internet |
 | ⑩ | Calls to AI checks, CRMs, and SMS go out through each zone's NAT gateway | Private parts can call out, but nothing outside can start a connection in |
-| ⑪ | A new photo in the photos bucket triggers a Lambda function that resizes it, removes GPS location data, and flags hidden phone numbers | Short, event-driven work that never touches the source of truth. Runs outside the VPC, so no NAT cost |
+| ⑪ | Uploads land in a private incoming bucket. After GuardDuty finds no malware, the photo is queued, checked by a Lambda function with Rekognition, cleaned (resized, GPS removed), and published to the photos bucket only if approved | Nothing unscanned or unchecked can ever be served. The event view below shows every step and failure path |
 
 **What's deliberately in one zone:** the background workers and the search index. Work waits
 safely in the queue, and the index can be rebuilt from the source of truth, so a zone failure only
@@ -409,6 +411,20 @@ the rules keep working when containers change addresses.
 | Database | The database port | The application and workers security groups only |
 | Search index | The search port | The application and workers security groups only |
 
+### Network ACLs: a second layer for the data subnets
+
+Security groups and network ACLs both filter traffic, but they work differently:
+
+| | Security group | Network ACL |
+|---|---|---|
+| Attached to | A resource, such as a task or a database | A subnet |
+| Remembers connections | **Yes (stateful).** Replies are allowed automatically | **No (stateless).** Replies need their own rule |
+| Rules | Allow only | Allow and deny, checked in number order |
+
+The data subnets get a network ACL that allows traffic only from the two app subnets, plus the
+replies going back to them. If a security group is ever misconfigured, the data layer is still
+closed. Other subnets keep the default network ACL.
+
 ### Calls going out
 
 The application and workers must call services outside the VPC, without being reachable from
@@ -459,7 +475,7 @@ version, and we switch on Multi-AZ when there are real users."
 |---|---|---|
 | The application (marketplace and workspace) | **ECS on Fargate**, two or more tasks across two zones | Request load from the load balancer |
 | Background workers | **ECS on Fargate**, same container image, separate ECS service | Number of jobs waiting in the queue |
-| Photo processing | **AWS Lambda**, outside the VPC | Automatic, one run per uploaded photo |
+| Photo processing | **AWS Lambda**, outside the VPC | One run per queued photo, fed by SQS |
 
 ### What each option makes us responsible for
 
@@ -493,7 +509,7 @@ that reacts to an AWS event and never touches the source of truth can be a Lambd
 | Updating the search index | ECS worker | Reads the source of truth continuously |
 | Bonus credit expiry, ledger reconciliation | ECS worker, started on a schedule | Changes money, so it must use the same tested ledger code as unlocking |
 | Review case automation and AI checks | ECS worker | Writes review cases and trust levels |
-| Photo processing | Lambda | Triggered by an upload. Resizes the photo, removes GPS location data, and sends any detected phone numbers to the workers' queue |
+| Photo processing | Lambda | Fed by an SQS queue after the malware scan. Uses Rekognition to find text and unsafe content, resizes the photo, removes GPS location data, and publishes it only if approved |
 
 **Why the workers share the application's container image:** there's one build and one copy of the
 business rules, so a worker can never disagree with the application about how credits work. They
@@ -579,7 +595,7 @@ Each recovery target in the requirements needs its own mechanism.
 
 | Other data | Protection |
 |---|---|
-| Photos and documents (S3) | **Versioning** undoes accidental deletes and overwrites; **cross-Region replication** to the second Region |
+| Photos and documents (S3) | **Versioning** undoes accidental deletes and overwrites; **cross-Region replication** to the second Region. The incoming bucket is not replicated, and a lifecycle rule deletes its objects after 1 day |
 | Search index | Not backed up. Rebuilt from the database |
 | Queued jobs | Not backed up. The outbox in the database is the real record; jobs are re-created from it |
 | The backups themselves | Locked against deletion with AWS Backup Vault Lock, so stolen credentials can't wipe them |
@@ -684,3 +700,124 @@ there. A certificate for a load balancer is created in the load balancer's own R
 | Domain | Our own domain in Route 53 | CloudFront's default address (`something.cloudfront.net`), which already has a valid certificate | A less friendly address for the demo |
 | WAF | Managed rules, IP reputation, rate limits, Bot Control, fraud prevention on sign-up | Managed rules and rate limits only | Weaker bot defense for made-up data |
 | Caching | As in the table above | The same | No difference |
+
+## Background processing: the event view
+
+The network view shows where things live. The event view shows how background work flows, step by
+step, including what happens when something fails.
+
+![TraceHome AWS architecture, event view](docs/event-flows.svg)
+
+*The source is [docs/event-flows.svg](docs/event-flows.svg).*
+
+### The rule behind every flow
+
+The user waits only for what must be correct now. Everything else is queued, retried, and, if it
+keeps failing, moved to a **dead-letter queue (DLQ)** that raises an alarm. Nothing is silently
+lost.
+
+| Term | Meaning |
+|---|---|
+| SQS queue | Holds work until a worker finishes it. If a worker crashes, the message becomes visible again and is retried |
+| Dead-letter queue | Where a message goes after a set number of failed attempts, so one broken message can't block the rest |
+| Redrive | Moving messages from the DLQ back to the main queue after the problem is fixed |
+| Idempotency | Doing the same work twice has the same effect as doing it once. SQS can deliver a message more than once, so every handler must be idempotent |
+
+### A · Unlocking a contact and delivering the lead
+
+1. One database transaction takes the credit, writes the ledger entry, records the unlock, and saves
+   the "lead created" event (the outbox). The seeker sees the contact at once.
+2. The **outbox relay** (an ECS worker) publishes new outbox events to the **SQS lead queue**.
+3. The **lead delivery worker** sends the lead to the advertiser's CRM, with a lead ID so the CRM can
+   ignore duplicates.
+4. If the CRM fails, the message returns to the queue and is retried with growing waits.
+5. After the last retry, the message moves to the **DLQ**, a CloudWatch alarm fires, and the team
+   fixes the problem and redrives it.
+6. Whatever happens to the CRM, the lead is always visible in the advertiser's TraceHome workspace.
+
+### B · Uploading a photo or document
+
+1. The application gives the advertiser a **presigned URL**: a short-lived link that allows one
+   upload to one location. The phone uploads straight to S3, so large files never pass through our
+   servers.
+2. The file lands in the private **incoming bucket**, which is never served to anyone.
+3. **GuardDuty Malware Protection for S3** scans it. **EventBridge** routes the result:
+   - **Infected:** the file is quarantined and the team is alerted.
+   - **Clean document:** moved to the documents bucket. No photo checks are needed.
+   - **Clean photo:** sent to the **SQS photo queue**.
+4. The **photo checks Lambda** uses **Amazon Rekognition** to find text (such as a painted phone
+   number) and unsafe content. It resizes the photo and removes GPS location data.
+5. If approved, the cleaned photo is written to the **photos bucket**, which CloudFront serves.
+6. If a phone number or unsafe content is found, a **review case** is opened: clear cases go back to
+   the advertiser automatically, unclear ones go to a moderator.
+7. Jobs that keep failing go to the photo DLQ, which raises an alarm.
+
+**Why a separate incoming bucket:** if Lambda wrote back to the bucket CloudFront serves, an
+unchecked photo, with GPS location or a phone number on it, could be public for a moment. With a
+separate bucket, an unchecked photo can't be served, because it is never where CloudFront looks.
+
+### C · Scheduled jobs and keeping search current
+
+- **EventBridge Scheduler** starts ECS tasks from the worker image for bonus credit expiry and
+  ledger reconciliation. Jobs that change money use the same tested ledger code as unlocking.
+- **Search updates** follow the outbox pattern: a listing change is saved with an outbox event, and
+  the indexer updates the search index within a minute. If the index is lost, it is rebuilt from
+  the database.
+
+## Operations and admin access
+
+### Account-wide services
+
+| Service | What it does for TraceHome |
+|---|---|
+| CloudWatch | Logs, metrics, and alarms: API errors and latency, failed unlocks, DLQs not empty, database connections, queue age |
+| CloudTrail | Records every AWS API call in the account: who changed what, and when |
+| GuardDuty | Detects threats across the account, and scans uploads for malware |
+| Systems Manager | Admin sessions without SSH (see below) |
+| AWS Budgets | Cost alerts at $10, $25, and $50 |
+| IAM | One role per workload, each with only the permissions it needs |
+
+### How we reach the private system
+
+There is **no bastion host, no SSH key, and no open port 22.**
+
+| Task | How |
+|---|---|
+| Look inside a running container | **ECS Exec**, built on Systems Manager Session Manager. Every session is authenticated with IAM and recorded |
+| Run a database migration | A **one-off ECS task** from the application image, inside the private app subnets |
+| Query the database by hand | Only in an emergency, through ECS Exec, and the session is recorded |
+
+**Why:** a bastion host is one more server to patch, and SSH keys can be stolen or copied. With
+Session Manager, access is controlled by IAM and every session leaves a record.
+
+## Lessons from a reference architecture
+
+We compared our design with a senior architect's layered AWS diagram for a video platform.
+
+**What we adopted:**
+
+- A separate incoming bucket, so unprocessed uploads are never served
+- Malware scanning of uploads with GuardDuty
+- SQS with dead-letter queues between events and the work they trigger
+- Rekognition for checking images
+- Admin access through Systems Manager instead of SSH
+- Network ACLs on the data subnets as a second layer
+- A management plane: CloudWatch, CloudTrail, GuardDuty
+- Splitting the picture into views (network and event) so each stays readable
+
+**What we deferred, and why:**
+
+| Service | Why not yet |
+|---|---|
+| Kinesis, Apache Flink, Firehose, Athena, QuickSight | No real-time analytics need yet. Each adds cost and operations |
+| Amazon Personalize | Recommendations come after we have real usage data |
+| MediaConvert | TraceHome is photo-first. Revisit if video tours are added |
+| ElastiCache (Redis) | Add when a measured caching or rate-limiting need appears. Never the authority for money |
+| RDS read replicas | Searches go to the search index, so the database isn't read-heavy |
+| RDS Proxy | No Lambda function connects to our database |
+| EFS | No shared file system is needed; files live in S3 |
+
+**What we do differently on purpose:** WAF and CloudFront are drawn outside the Region, because
+neither lives in a subnet. Availability Zones are shown, so it's visible what survives a zone
+failure. And the load balancer is internal, so the firewall can't be bypassed.
+

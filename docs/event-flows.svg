@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1240" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" preserveAspectRatio="xMidYMin meet" style="display:block;margin:0 auto;max-width:1600px;width:100%">
+<defs><marker id="m0F766E" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0F766E"/></marker><marker id="mB45309" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B45309"/></marker><marker id="m334155" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker><marker id="mDC2626" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker><marker id="mC2410C" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C2410C"/></marker><marker id="mBE185D" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#BE185D"/></marker></defs>
+<rect width="1600" height="1240" fill="#FFFFFF"/>
+<text x="40" y="44" font-size="24" fill="#0F172A" font-weight="700" text-anchor="start">TraceHome · AWS architecture (event view)</text>
+<text x="40" y="68" font-size="13" fill="#64748B" font-weight="400" text-anchor="start">How background work flows · the user waits only for the first step · every failure path ends in a dead-letter queue and an alarm</text>
+<rect x="30" y="90" width="1540" height="330" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="50" y="114" font-size="14" fill="#0F172A" font-weight="700" text-anchor="start">A · Unlocking a contact and delivering the lead</text>
+<text x="50" y="132" font-size="11.5" fill="#64748B" font-weight="400" text-anchor="start">The seeker waits only for the transaction. Delivery happens in the background and is never lost.</text>
+<rect x="50" y="160" width="150" height="75" rx="8" fill="#F4F4F5" stroke="#71717A" stroke-width="2"/>
+<text x="125.0" y="193.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Seeker taps Unlock</text>
+<text x="125.0" y="209.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">phone or browser</text>
+<rect x="240" y="140" width="330" height="140" rx="10" fill="#F0FDFA" stroke="#0F766E" stroke-width="2"/>
+<text x="405" y="160" font-size="10.5" fill="#0F766E" font-weight="700" text-anchor="middle">ONE TRANSACTION · RDS POSTGRESQL</text>
+<text x="262" y="184" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">1  Take one credit from the right lot</text>
+<text x="262" y="206" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">2  Add a ledger entry</text>
+<text x="262" y="228" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">3  Record the unlock (unique per seeker)</text>
+<text x="262" y="250" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">4  Save the "lead created" event (outbox)</text>
+<rect x="610" y="165" width="150" height="70" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
+<text x="685.0" y="188.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Outbox relay</text>
+<text x="685.0" y="204.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS worker</text>
+<text x="685.0" y="221.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">publishes new events</text>
+<rect x="800" y="165" width="140" height="70" rx="8" fill="#FFFFFF" stroke="#BE185D" stroke-width="2"/>
+<text x="870.0" y="188.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">SQS lead queue</text>
+<text x="870.0" y="204.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">holds work until</text>
+<text x="870.0" y="221.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">delivered</text>
+<rect x="980" y="165" width="170" height="70" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
+<text x="1065.0" y="188.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Lead delivery worker</text>
+<text x="1065.0" y="204.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS worker</text>
+<text x="1065.0" y="221.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">sends with a lead ID</text>
+<rect x="1190" y="165" width="170" height="70" rx="8" fill="#F4F4F5" stroke="#71717A" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="1275.0" y="196.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Advertiser's CRM</text>
+<text x="1275.0" y="212.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">webhook · may be offline</text>
+<rect x="1400" y="165" width="150" height="70" rx="8" fill="#FFFFFF" stroke="#15803D" stroke-width="2"/>
+<text x="1475.0" y="188.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Delivered</text>
+<text x="1475.0" y="204.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">CRM ignores duplicates</text>
+<text x="1475.0" y="221.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">by lead ID</text>
+<path d="M200,197 H240" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M570,200 H610" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M760,200 H800" fill="none" stroke="#BE185D" stroke-width="2" marker-end="url(#mBE185D)" stroke-linejoin="round"/>
+<path d="M940,200 H980" fill="none" stroke="#BE185D" stroke-width="2" marker-end="url(#mBE185D)" stroke-linejoin="round"/>
+<path d="M1150,200 H1190" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M1360,200 H1400" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M405,280 V320 H125 V235" fill="none" stroke="#15803D" stroke-width="2" marker-end="url(#m15803D)" stroke-linejoin="round"/>
+<rect x="193.95" y="310" width="142.1" height="20" rx="10" fill="#FFFFFF" stroke="#15803D" stroke-width="1.2"/>
+<text x="265" y="324" font-size="11" fill="#0F172A" font-weight="500" text-anchor="middle">contact shown at once</text>
+<path d="M1275,235 V265 H1065 V235" fill="none" stroke="#DC2626" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mDC2626)" stroke-linejoin="round"/>
+<rect x="1053.2" y="255" width="233.6" height="20" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.2"/>
+<text x="1170" y="269" font-size="11" fill="#0F172A" font-weight="500" text-anchor="middle">fails: retried later (1, 5, 30 min…)</text>
+<path d="M870,235 V340" fill="none" stroke="#DC2626" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mDC2626)" stroke-linejoin="round"/>
+<rect x="802.0" y="290" width="136.0" height="20" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.2"/>
+<text x="870" y="304" font-size="11" fill="#0F172A" font-weight="500" text-anchor="middle">after the last retry</text>
+<rect x="800" y="340" width="140" height="60" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="2"/>
+<text x="870.0" y="366.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Dead-letter queue</text>
+<text x="870.0" y="382.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">failed deliveries</text>
+<rect x="980" y="340" width="170" height="60" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="2"/>
+<text x="1065.0" y="366.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">CloudWatch alarm</text>
+<text x="1065.0" y="382.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">DLQ is not empty</text>
+<rect x="1190" y="340" width="170" height="60" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="2"/>
+<text x="1275.0" y="366.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Team investigates</text>
+<text x="1275.0" y="382.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">fix, then redrive</text>
+<path d="M940,370 H980" fill="none" stroke="#DC2626" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mDC2626)" stroke-linejoin="round"/>
+<path d="M1150,370 H1190" fill="none" stroke="#DC2626" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mDC2626)" stroke-linejoin="round"/>
+<rect x="610" y="340" width="150" height="60" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
+<text x="685.0" y="366.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Workspace inbox</text>
+<text x="685.0" y="382.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">lead always visible</text>
+<path d="M520,280 V370 H610" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<rect x="30" y="440" width="1540" height="410" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="50" y="464" font-size="14" fill="#0F172A" font-weight="700" text-anchor="start">B · Uploading a photo or document</text>
+<text x="50" y="482" font-size="11.5" fill="#64748B" font-weight="400" text-anchor="start">Nothing is served or opened until it has been scanned and checked. Users upload straight to S3, not through our servers.</text>
+<rect x="50" y="520" width="150" height="75" rx="8" fill="#F4F4F5" stroke="#71717A" stroke-width="2"/>
+<text x="125.0" y="545.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Advertiser uploads</text>
+<text x="125.0" y="561.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">gets a presigned URL</text>
+<text x="125.0" y="578.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">from the application</text>
+<path d="M240,521 A75.0,9 0 0 1 390,521 V598 A75.0,9 0 0 1 240,598 Z" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
+<path d="M240,521 A75.0,9 0 0 0 390,521" fill="none" stroke="#B45309" stroke-width="2"/>
+<text x="315.0" y="552.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Incoming bucket</text>
+<text x="315.0" y="568.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">private</text>
+<text x="315.0" y="585.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">never served</text>
+<rect x="430" y="520" width="160" height="75" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="2"/>
+<text x="510.0" y="545.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">GuardDuty scan</text>
+<text x="510.0" y="561.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">Malware Protection</text>
+<text x="510.0" y="578.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">for S3</text>
+<rect x="630" y="520" width="150" height="75" rx="8" fill="#FFFFFF" stroke="#BE185D" stroke-width="2"/>
+<text x="705.0" y="545.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">EventBridge</text>
+<text x="705.0" y="561.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">routes the</text>
+<text x="705.0" y="578.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">scan result</text>
+<rect x="820" y="520" width="140" height="75" rx="8" fill="#FFFFFF" stroke="#BE185D" stroke-width="2"/>
+<text x="890.0" y="553.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">SQS photo queue</text>
+<text x="890.0" y="569.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">+ dead-letter queue</text>
+<rect x="1000" y="505" width="200" height="105" rx="8" fill="#FFFFFF" stroke="#D946EF" stroke-width="2"/>
+<text x="1100.0" y="537.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Photo checks · Lambda</text>
+<text x="1100.0" y="553.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">Rekognition: find text</text>
+<text x="1100.0" y="570.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">and unsafe content</text>
+<text x="1100.0" y="587.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">resize · strip GPS data</text>
+<path d="M1240,521 A75.0,9 0 0 1 1390,521 V598 A75.0,9 0 0 1 1240,598 Z" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
+<path d="M1240,521 A75.0,9 0 0 0 1390,521" fill="none" stroke="#B45309" stroke-width="2"/>
+<text x="1315.0" y="560.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Photos bucket</text>
+<text x="1315.0" y="576.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">approved only</text>
+<rect x="1430" y="520" width="120" height="75" rx="8" fill="#FFFFFF" stroke="#D97706" stroke-width="2"/>
+<text x="1490.0" y="553.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">CloudFront</text>
+<text x="1490.0" y="569.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">serves seekers</text>
+<path d="M200,557 H240" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<path d="M390,557 H430" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<path d="M590,557 H630" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M780,557 H820" fill="none" stroke="#BE185D" stroke-width="2" marker-end="url(#mBE185D)" stroke-linejoin="round"/>
+<path d="M960,557 H1000" fill="none" stroke="#BE185D" stroke-width="2" marker-end="url(#mBE185D)" stroke-linejoin="round"/>
+<path d="M1200,557 H1240" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<path d="M1390,557 H1430" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<rect x="759.45" y="495" width="81.1" height="20" rx="10" fill="#FFFFFF" stroke="#15803D" stroke-width="1.2"/>
+<text x="800" y="509" font-size="11" fill="#0F172A" font-weight="500" text-anchor="middle">clean photo</text>
+<path d="M725,595 V680" fill="none" stroke="#DC2626" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mDC2626)" stroke-linejoin="round"/>
+<rect x="693.6" y="630" width="62.8" height="20" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.2"/>
+<text x="725" y="644" font-size="11" fill="#0F172A" font-weight="500" text-anchor="middle">infected</text>
+<rect x="660" y="680" width="130" height="65" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="2"/>
+<text x="725.0" y="700.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Quarantine</text>
+<text x="725.0" y="716.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">file isolated</text>
+<text x="725.0" y="733.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">team alerted</text>
+<path d="M1100,610 V680" fill="none" stroke="#DC2626" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mDC2626)" stroke-linejoin="round"/>
+<rect x="1001.5" y="635" width="197.0" height="20" rx="10" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.2"/>
+<text x="1100" y="649" font-size="11" fill="#0F172A" font-weight="500" text-anchor="middle">phone number or unsafe content</text>
+<rect x="1000" y="680" width="200" height="65" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
+<text x="1100.0" y="700.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Review case</text>
+<text x="1100.0" y="716.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">clear: back to the advertiser</text>
+<text x="1100.0" y="733.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">unclear: a moderator decides</text>
+<path d="M890,595 V680" fill="none" stroke="#DC2626" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mDC2626)" stroke-linejoin="round"/>
+<rect x="820" y="680" width="140" height="65" rx="8" fill="#FEF2F2" stroke="#DC2626" stroke-width="2"/>
+<text x="890.0" y="708.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Dead-letter queue</text>
+<text x="890.0" y="724.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">alarm if not empty</text>
+<path d="M645,595 V780 H1240" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="3 4" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<rect x="1240" y="750" width="310" height="65" rx="8" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
+<text x="1395.0" y="778.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Documents bucket</text>
+<text x="1395.0" y="794.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">clean documents only · expiring links for reviewers</text>
+<rect x="935.4" y="770" width="209.2" height="20" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.2"/>
+<text x="1040" y="784" font-size="11" fill="#0F172A" font-weight="500" text-anchor="middle">clean document (no photo checks)</text>
+<rect x="30" y="870" width="1540" height="170" rx="12" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1.5"/>
+<text x="50" y="894" font-size="14" fill="#0F172A" font-weight="700" text-anchor="start">C · Scheduled jobs and keeping search current</text>
+<text x="50" y="912" font-size="11.5" fill="#64748B" font-weight="400" text-anchor="start">Money-changing jobs reuse the same tested ledger code as the application.</text>
+<rect x="50" y="940" width="180" height="70" rx="8" fill="#FFFFFF" stroke="#BE185D" stroke-width="2"/>
+<text x="140.0" y="971.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">EventBridge Scheduler</text>
+<text x="140.0" y="987.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">nightly and hourly</text>
+<rect x="270" y="940" width="220" height="70" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
+<text x="380.0" y="963.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">ECS task (worker image)</text>
+<text x="380.0" y="979.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">bonus credit expiry</text>
+<text x="380.0" y="996.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ledger reconciliation</text>
+<path d="M530,941 A85.0,9 0 0 1 700,941 V1008 A85.0,9 0 0 1 530,1008 Z" fill="#FFFFFF" stroke="#0F766E" stroke-width="2"/>
+<path d="M530,941 A85.0,9 0 0 0 700,941" fill="none" stroke="#0F766E" stroke-width="2"/>
+<text x="615.0" y="975.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">RDS PostgreSQL</text>
+<text x="615.0" y="991.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">source of truth</text>
+<path d="M230,975 H270" fill="none" stroke="#BE185D" stroke-width="2" marker-end="url(#mBE185D)" stroke-linejoin="round"/>
+<path d="M490,975 H530" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<rect x="800" y="940" width="170" height="70" rx="8" fill="#FFFFFF" stroke="#0F766E" stroke-width="2"/>
+<text x="885.0" y="971.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Listing changes</text>
+<text x="885.0" y="987.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">saved with an outbox event</text>
+<rect x="1010" y="940" width="170" height="70" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
+<text x="1095.0" y="971.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Indexer</text>
+<text x="1095.0" y="987.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS worker</text>
+<path d="M1220,941 A85.0,9 0 0 1 1390,941 V1008 A85.0,9 0 0 1 1220,1008 Z" fill="#FFFFFF" stroke="#0F766E" stroke-width="2"/>
+<path d="M1220,941 A85.0,9 0 0 0 1390,941" fill="none" stroke="#0F766E" stroke-width="2"/>
+<text x="1305.0" y="975.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Search index</text>
+<text x="1305.0" y="991.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">up to 1 minute behind</text>
+<path d="M970,975 H1010" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<path d="M1180,975 H1220" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<text x="1410" y="968" font-size="11.5" fill="#64748B" font-weight="400" text-anchor="start">If the index is lost,</text>
+<text x="1410" y="984" font-size="11.5" fill="#64748B" font-weight="400" text-anchor="start">rebuild it from the</text>
+<text x="1410" y="1000" font-size="11.5" fill="#64748B" font-weight="400" text-anchor="start">database.</text>
+<text x="40" y="1080" font-size="12" fill="#0F172A" font-weight="700" text-anchor="start">HOW TO READ THIS DIAGRAM</text>
+<rect x="40" y="1100" width="26" height="22" rx="4" fill="#EFF6FF" stroke="#1D4ED8" stroke-width="1.5"/>
+<text x="76" y="1115" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">ECS on Fargate</text>
+<rect x="240" y="1100" width="26" height="22" rx="4" fill="#FDF4FF" stroke="#D946EF" stroke-width="1.5"/>
+<text x="276" y="1115" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">AWS Lambda</text>
+<rect x="440" y="1100" width="26" height="22" rx="4" fill="#FDF2F8" stroke="#BE185D" stroke-width="1.5"/>
+<text x="476" y="1115" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">SQS and EventBridge</text>
+<rect x="640" y="1100" width="26" height="22" rx="4" fill="#F0FDFA" stroke="#0F766E" stroke-width="1.5"/>
+<text x="676" y="1115" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">Database and index</text>
+<rect x="40" y="1134" width="26" height="22" rx="4" fill="#FFFBEB" stroke="#B45309" stroke-width="1.5"/>
+<text x="76" y="1149" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">Amazon S3</text>
+<rect x="240" y="1134" width="26" height="22" rx="4" fill="#FEF2F2" stroke="#DC2626" stroke-width="1.5"/>
+<text x="276" y="1149" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">Security and failure</text>
+<rect x="440" y="1134" width="26" height="22" rx="4" fill="#F1F5F9" stroke="#475569" stroke-width="1.5"/>
+<text x="476" y="1149" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">Operations</text>
+<rect x="640" y="1134" width="26" height="22" rx="4" fill="#F4F4F5" stroke="#71717A" stroke-width="1.5"/>
+<text x="676" y="1149" font-size="12" fill="#0F172A" font-weight="600" text-anchor="start">Outside TraceHome</text>
+<text x="900" y="1080" font-size="12" fill="#0F172A" font-weight="700" text-anchor="start">LINES</text>
+<path d="M900,1111 H950" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#m334155)" stroke-linejoin="round"/>
+<text x="962" y="1115" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Request or data</text>
+<path d="M1230,1111 H1280" fill="none" stroke="#BE185D" stroke-width="2" marker-end="url(#mBE185D)" stroke-linejoin="round"/>
+<text x="1292" y="1115" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Queued or routed event</text>
+<path d="M900,1145 H950" fill="none" stroke="#B45309" stroke-width="2" marker-end="url(#mB45309)" stroke-linejoin="round"/>
+<text x="962" y="1149" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">File</text>
+<path d="M1230,1145 H1280" fill="none" stroke="#DC2626" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#mDC2626)" stroke-linejoin="round"/>
+<text x="1292" y="1149" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Failure path</text>
+<text x="40" y="1190" font-size="12" fill="#64748B" font-weight="400" text-anchor="start">Rule behind every lane: the user waits only for what must be correct now. Everything else is queued, retried, and ends in a dead-letter queue with an alarm, never silently lost.</text>
+</svg>

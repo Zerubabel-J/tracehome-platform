@@ -5,7 +5,7 @@ A trusted property platform for selling and renting homes, starting in Addis Aba
 **Team:** Getasil Desaleng, Seid Endris, Zerubabel Jember (Evangadi AWS, Group 9)
 
 > **Status: AWS architecture design.** Requirements and the logical architecture are agreed. We're
-> now mapping each part to AWS, one layer at a time. Network, compute, data, and edge are decided.
+> now mapping each part to AWS, one layer at a time. Network, compute, data, edge, background processing, and operations are decided.
 
 ## Why this repository exists
 
@@ -123,6 +123,15 @@ decision with a better argument or new evidence. Decided items move to the decis
 | 48 | 9 Nov | AWS WAF on CloudFront is the first layer of defense; business rules remain the main defense | WAF sees requests, not intent | Abuse patterns change |
 | 49 | 9 Nov | Route 53 for DNS with alias records to CloudFront; ACM certificates (in us-east-1 for CloudFront), validated through DNS and renewed automatically | Free, automatic, and no expired certificates | None expected |
 | 50 | 9 Nov | Development build uses the default cloudfront.net address and basic WAF rules; the domain is bought later | Saves cost while data is made up | The demo needs a real domain |
+| 51 | 10 Nov | Uploads land in a private incoming bucket; only processed, approved photos reach the photos bucket | An unchecked photo can never be served | None expected |
+| 52 | 10 Nov | GuardDuty Malware Protection scans every upload; infected files are quarantined | Moderators open user files, so malware is a real risk | None expected |
+| 53 | 10 Nov | SQS with a dead-letter queue for photo jobs and lead delivery, with an alarm when a DLQ isn't empty | Failed work is isolated and visible, never lost | None expected |
+| 54 | 10 Nov | Photo checks use Rekognition: text detection for hidden contacts, moderation labels for unsafe images | Managed service for the checks we already require | Accuracy proves too low |
+| 55 | 10 Nov | Admin access only through ECS Exec and Session Manager; no SSH, no bastion; migrations run as one-off ECS tasks | Access controlled by IAM, every session recorded | None expected |
+| 56 | 10 Nov | A network ACL on the data subnets allows only the app subnets | Second layer if a security group is misconfigured | None expected |
+| 57 | 10 Nov | CloudWatch alarms, CloudTrail, GuardDuty, and Budgets from day one | We notice problems before users do | None expected |
+| 58 | 10 Nov | EventBridge routes malware scan results and schedules jobs; scheduled jobs run as ECS tasks from the worker image | One event router; money jobs reuse tested code | None expected |
+| 59 | 10 Nov | The architecture is shown in two views: network (where things live) and event (how work flows) | One picture can't show both clearly | None expected |
 
 ### Our edge over Telegram groups
 
