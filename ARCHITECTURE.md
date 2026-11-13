@@ -5,7 +5,7 @@ This document turns the agreed requirements into a design. We build it in two st
 1. **Logical architecture:** the parts of the system and how they work together, without naming
    any technology. *(Done.)*
 2. **AWS architecture:** each logical part mapped to AWS services, with a reason for every choice.
-   *(In progress: network, compute, data, edge, background processing, and operations are decided.)*
+   *(In progress: network, compute, data, edge, background processing, delivery, and operations are decided.)*
 
 Separating the stages keeps the reasoning honest. If a part can't be justified without naming a
 product, it probably isn't needed.
@@ -17,9 +17,9 @@ agreed in the requirements, listed here in full.
 
 | Principle | What it means in practice | Business rules it protects |
 |---|---|---|
-| **1. One trusted source of truth for money and permissions** | Credits, unlocks, reviews, plan limits, and access rights are checked and changed together, in one place, as one all-or-nothing step | • A seeker can't spend more credits than they have<br>• A credit is never spent twice, even when a request is retried<br>• A seeker never pays twice to unlock the same listing<br>• A seeker's balance always equals the sum of their credit history<br>• An expired bonus credit can't be spent<br>• Contact details are visible only to seekers who unlocked them<br>• An advertiser never exceeds their plan's listing or agent limit<br>• A review exists only after an unlock and a reported viewing<br>• One seeker leaves at most one review per unlock<br>• An advertiser never sees another advertiser's private data |
+| **1. One trusted source of truth for money and permissions** | Credits, unlocks, reviews, plan limits, and access rights are checked and changed together, in one place, as one all-or-nothing step | • A seeker can't spend more credits than they have<br>• A credit is never spent twice, even when a request is retried<br>• A seeker never pays twice to unlock the same listing<br>• A seeker's balance always equals the sum of their credit history<br>• An expired bonus credit can't be spent<br>• Contact details are visible only to seekers who unlocked them<br>• An advertiser never exceeds their plan's listing or agent limit<br>• A review exists only after an unlock and a reported viewing<br>• One seeker leaves at most one review per unlock<br>• An advertiser never sees another advertiser's private data<br>• Every unlock produces a lead in the advertiser's workspace |
 | **2. Lists and copies may lag, but every action checks the source of truth** | Search results and cached pages may be slightly out of date. When someone acts, such as unlocking a contact, the system checks the current record. | • Only approved listings appear in search; a removed listing disappears within 1 minute<br>• A broker's listing is public only while the owner's approval is valid |
-| **3. Background work is guaranteed, never lost** | Work that can wait, such as sending leads, is delayed safely and retried until it succeeds | • Every unlock produces a lead for the advertiser, even if their CRM is offline<br>• Every decision's record is archived for long-term keeping |
+| **3. Background work is guaranteed, never lost** | Work that can wait, such as checking uploaded photos, is delayed safely and retried until it succeeds | • Every upload is checked before it is published, even if a check fails the first time<br>• Every decision's record is archived for long-term keeping |
 | **4. Automate clear cases, send doubtful ones to a person** | Automation decides when it's confident; otherwise a moderator decides | • Approving a fraudster is worse than rejecting an honest advertiser<br>• AI checks decide clear cases; people decide doubtful ones<br>• Refunds follow precise rules; doubtful ones go to a person<br>• Clear hidden contact details go back to the advertiser; unclear ones go to a moderator |
 | **5. The public marketplace and the private workspace are designed differently** | Browsing is public, heavy, and fine slightly stale. The workspace is private, smaller, and must always be correct. | • TraceHome is two products: a public marketplace and a private advertiser workspace |
 | **6. Personal data is kept separate, so it could move later** | Names, phone numbers, and documents are stored apart from everything else | • Everything runs on AWS for now, but personal data may need to move to Ethiopia if the law requires it |
@@ -35,7 +35,7 @@ flowchart TB
         seeker["Seeker app"]
         workspace["Advertiser workspace"]
         console["Moderator console"]
-        external["External tools<br/>CRM, automation"]
+        external["External tools<br/>CRM, automation (after launch)"]
     end
 
     subgraph edge["Edge layer"]
@@ -75,7 +75,7 @@ flowchart TB
     subgraph background["Background processing"]
         events["Event backbone<br/>Guaranteed delivery"]
         checks["AI checks<br/>Identity, documents, photos, hidden contacts"]
-        delivery2["Lead delivery<br/>To external tools"]
+        delivery2["Lead delivery<br/>To external tools (after launch)"]
         notify["Notifications<br/>SMS and email"]
         scheduler["Scheduled jobs<br/>Expiry, grace periods, reconciliation"]
         indexer["Search updates"]
@@ -129,7 +129,7 @@ flowchart TB
 | Event backbone | Carries "something happened" messages, and keeps them until handled | Guaranteed background work (principle 3) |
 | AI checks | Identity, documents, photos, and hidden contact details | Automated decisions with confidence levels (principle 4) |
 | Review cases | One queue for every doubtful decision | One shared queue for all seven kinds of review case (principle 4) |
-| Lead delivery | Sends leads to CRMs and automation tools, retrying when they're down | Every unlock must produce a lead for the advertiser |
+| Lead delivery | Sends leads to CRMs and automation tools, retrying when they're down | **After launch** (decision 70). At launch, the advertiser sees every lead in their workspace |
 | Notifications | SMS and email | Reminders, alerts, and confirmations |
 | Scheduled jobs | Bonus expiry, listing expiry, grace periods, balance checks | Time-based rules |
 | Monitoring | Notices problems before users report them | Observability |
@@ -148,7 +148,7 @@ modules use it only through its defined actions.
 | Credits and unlocks | Credit lots, ledger, unlocks | Credits are never overspent, spent twice, or spent after expiry; no listing is unlocked twice; contacts go only to seekers who unlocked them |
 | Reviews and reputation | Viewing reports, reviews, responses | Reviews only after an unlock and a reported viewing; one review per unlock |
 | Review cases | Cases, assignments, decisions | Every decision is recorded |
-| Leads and integrations | Leads, connections to external tools | Every unlock creates a lead |
+| Leads and integrations | Leads; connections to external tools after launch | Every unlock creates a lead, in the same transaction |
 
 ## Where work happens
 
@@ -158,7 +158,7 @@ The most important design boundary: what happens **while the user waits**, and w
 | While the user waits | In the background |
 |---|---|
 | Browsing and searching | Updating the search index |
-| Unlocking a contact and spending a credit | Delivering the lead to the advertiser's CRM |
+| Unlocking a contact and spending a credit | Delivering the lead to the advertiser's CRM (after launch) |
 | Creating or editing a listing | AI checks on photos, text, and documents |
 | Writing a review | Notifications |
 | Moderator decisions | Expiry and grace period jobs |
@@ -180,9 +180,7 @@ sequenceDiagram
     actor Seeker
     participant App as Core application
     participant DB as Source of truth
-    participant Events as Event backbone
-    participant Leads as Lead delivery
-    actor CRM as Advertiser's CRM
+    actor Adv as Advertiser's workspace
 
     Seeker->>App: Unlock this listing, with a request ID
     App->>DB: Was this request ID already handled?
@@ -194,19 +192,21 @@ sequenceDiagram
             App->>DB: Check the listing is still approved and available
             App->>DB: Spend the soonest-expiring credit
             App->>DB: Record the unlock and the ledger entry
-            App->>DB: Record a "lead created" event to send
+            App->>DB: Record the lead for the advertiser
         end
     end
     App-->>Seeker: Show the contact details
-    DB->>Events: Send the recorded event
-    Events->>Leads: Deliver the lead
-    Leads->>CRM: Send, retrying if the CRM is down
+    Adv->>DB: The new lead appears in the workspace
 ```
 
-**Why the event is recorded in the same step:** if the system crashed after spending the credit
-but before recording the event, the advertiser would never get the lead, breaking the rule that
-every unlock produces a lead. Saving the event with the unlock means a crash can't separate them. A background process
-then sends it.
+**Why the lead is recorded in the same step:** if the system crashed after spending the credit
+but before recording the lead, the advertiser would never get it, breaking the rule that every
+unlock produces a lead. Saving the lead with the unlock means a crash can't separate them, and no
+background work is needed.
+
+**After launch, sending leads to an advertiser's CRM:** the same transaction will also record a
+"lead created" event (the **outbox**). A background process then sends it to the CRM, retrying if
+the CRM is down. Because the event is saved with the unlock, a crash can't lose it.
 
 ### Publishing a listing
 
@@ -256,6 +256,10 @@ flowchart LR
 Search may be up to 1 minute behind. Unlocking always checks the source of truth, so a seeker can
 never pay for a listing that was just removed.
 
+**Update from stage 2:** at launch, search runs inside PostgreSQL itself, so it isn't behind at
+all. The separate search index stays in this logical design as the option we add when measurements
+show PostgreSQL search is no longer enough.
+
 ## Data classes
 
 Each kind of data needs different protection. This table drives encryption, access, and storage
@@ -274,10 +278,10 @@ choices in the next stage.
 
 Answer these yourself first. They test whether the design is clear to you.
 
-1. Why does unlocking a contact happen while the user waits, but delivering the lead doesn't?
+1. Why does unlocking a contact happen while the user waits, but checking an uploaded photo doesn't?
 2. Why is the search index allowed to be wrong for a minute, but the credit balance never is?
 3. Why is the core one application with modules, and not seven separate services?
-4. What happens to a lead if the advertiser's CRM is offline when the seeker unlocks the contact?
+4. How does the advertiser get the lead if background work is down when the seeker unlocks the contact?
 5. Why are public photos and verification documents stored separately?
 
 ---
@@ -300,50 +304,75 @@ DNS → CDN at the edge → firewall → load balancer → compute → database 
 
 ## The architecture at a glance
 
-One master diagram shows the whole target design: the network, where every part lives, and how
-work flows through it. It is presented one journey at a time, with the rest of the diagram faded.
+One main diagram shows the whole target design. **Read the top from top to bottom**, the way a
+request travels: the browser, the edge, then inside the VPC the public, app, and data subnets. The
+**parts below** are background work and operations, and each reads left to right.
 
 ![TraceHome AWS architecture: target design](docs/architecture.svg)
 
 *Open the image on its own for full size. The source is [docs/architecture.svg](docs/architecture.svg).*
 
-**For the presentation:** an interactive version lights up each journey, with steps, talking
-points, and expected questions: [TraceHome Architecture](https://claude.ai/artifact/BHocuNmppuiZ96L7uuC2SX).
-Keys: ← → change journey, 0–4 jump to one.
-
-**One journey at a time:** the same diagram with one journey highlighted.
-
-| Journey | Image | What it shows |
+| Part | What it does | Main services |
 |---|---|---|
-| Browsing (B1–B5) | [architecture-browse.svg](docs/architecture-browse.svg) | Route 53 → CloudFront and WAF → VPC origin → internal load balancer → app → search index or database |
-| Unlocking a contact (U1–U5) | [architecture-unlock.svg](docs/architecture-unlock.svg) | One transaction with the outbox → outbox relay → SQS through its endpoint → delivery worker → CRM, with retries and a DLQ |
-| Uploading a photo (P1–P6) | [architecture-upload.svg](docs/architecture-upload.svg) | Presigned upload → incoming bucket → GuardDuty → EventBridge → SQS → Lambda and Rekognition → photos bucket |
-| Failure and recovery (R1–R4) | [architecture-recovery.svg](docs/architecture-recovery.svg) | Zone failover, workers restarting, dead-letter queues and alarms, backups in a second Region |
+| Edge | Receives every request, answers from cache when it can, filters attacks, and picks the origin by path | Route 53, CloudFront, AWS WAF, ACM; the web bucket for the website's files |
+| Serving requests | Runs the application and holds the source of truth, inside the VPC across two zones | Internal ALB, ECS on Fargate (API and workers), RDS PostgreSQL Multi-AZ, NAT gateways, S3 gateway endpoint |
+| Queues | Carries upload results from the checks to the workers | SQS upload results queue and its dead-letter queue |
+| Checking uploads | Scans and checks every upload before anything is published | S3, GuardDuty, EventBridge, SQS, Lambda, Rekognition |
+| Analytics | Answers business questions from logs, without touching the database | S3 logs bucket, Glue Data Catalog, Athena |
+| Delivery | Turns a code change into running containers | GitHub, CodePipeline, CodeBuild, ECR, Terraform |
+| Operations | Watches everything above | CloudWatch, CloudTrail, GuardDuty, Systems Manager, AWS Backup, IAM, Budgets |
 
-The [event view](#background-processing-the-event-view) shows each background flow in more detail,
-including every failure branch.
+### How the parts talk to each other
+
+The parts never call each other directly. Every crossing goes through a **named door**, drawn on
+the edge of the VPC or labelled on the line:
+
+| Door | Connects | What goes through it |
+|---|---|---|
+| CloudFront VPC origin | Edge → serving requests | Requests to the API. Every response goes back the same way, to the browser |
+| Internet gateway and NAT | Serving requests → AWS APIs and the internet | Workers receiving from SQS, pulling container images, SMS and AI services. Outbound only |
+| S3 gateway endpoint | Serving requests → S3 | The application and workers reading and writing files; image layers during a deployment |
+| SQS upload results queue | Checking uploads → serving requests | Check results; the only way background results reach the database |
+| Presigned URL | Browser → checking uploads | A short-lived link the API signs, so the browser uploads straight to S3 |
+
+### The journeys
+
+The same diagram is presented one journey at a time. Every journey starts at the browser, passes
+its decision points, and ends with a response back to the browser. Responses aren't drawn as
+separate lines: each one returns the way its request came. The presenter and the sequence diagrams
+show them step by step.
+
+| Journey | Image | Path |
+|---|---|---|
+| Browsing (B1–B5) | [architecture-browse.svg](docs/architecture-browse.svg) | Route 53 → CloudFront and WAF (cached answers end here) → VPC origin → ALB → API → PostgreSQL → response |
+| Unlocking a contact (U1–U4) | [architecture-unlock.svg](docs/architecture-unlock.svg) | API → credits available? → one transaction (credit, ledger, unlock, lead) → contact back to the browser |
+| Uploading a photo (P1–P8) | [architecture-upload.svg](docs/architecture-upload.svg) | Presigned URL → upload to the incoming bucket → malware scan: clean? → checks: approved? → photos bucket → result queue → database → status back to the browser |
+| Deploying a change (D1–D4) | [architecture-deploy.svg](docs/architecture-deploy.svg) | GitHub → CodePipeline → CodeBuild → ECR → ECS rolling deployment |
+| Failure and recovery (R1–R4) | [architecture-recovery.svg](docs/architecture-recovery.svg) | Zone failover, dead-letter queues and alarms, backups in a second Region |
+
+**For the presentation:** an interactive version steps through each journey one step at a time,
+with talking points and expected questions:
+[TraceHome Architecture](https://claude.ai/artifact/BHocuNmppuiZ96L7uuC2SX).
+
+**For detailed questions:** [sequence diagrams](#key-flows-on-aws) show the unlock and upload
+flows message by message, and the [reliability view](#reliability-view) shows what happens when
+something fails.
 
 ### How to read the diagram
 
-| Color | Meaning |
+| Line | Meaning |
 |---|---|
-| Green | **Public subnet.** Routes to the internet gateway. Only the NAT gateways live here |
-| Blue | **Private app subnet.** The internal load balancer, the application, and the workers |
-| Teal | **Private data subnet.** The database and search index. No internet route at all, and a network ACL that allows only the app subnets |
-| Purple | **The VPC and its endpoints.** The internet gateway (outbound only), the SQS interface endpoint, and the S3 gateway endpoint |
-| Grey dashed outline | **Availability Zone**, or the group of regional services outside the VPC |
-| Orange | **Edge.** Route 53, CloudFront, and AWS WAF, on AWS's global network |
-| Amber | **Amazon S3.** Three buckets: incoming, documents, and photos |
-| Pink | **AWS Lambda.** Photo checks, outside the VPC |
-| Rose | **SQS and EventBridge.** Queues with dead-letter queues, and event routing |
-| Red fill | **Security scanning.** GuardDuty Malware Protection |
-| Slate, top right | **Account-wide services.** CloudWatch, CloudTrail, GuardDuty, Systems Manager, AWS Backup, IAM, and Budgets |
-| Dashed box | **Standby.** Used only when something fails |
+| Solid dark | A request or data, while the user waits. The response returns the same way |
+| Rose | A message through a queue or an event, in the background |
+| Amber | A file moving |
+| Dashed red | Outbound only: a call out through NAT, never inbound |
+| Dashed teal | Database replication to the standby |
+| Purple | Deployment: from code to running containers |
 
-**Lines:** dark lines are requests and data access, blue lines are the lead flow, amber lines
-carry files, rose lines are queued or routed events, dashed red lines are outbound calls (never
-inbound), and the dashed teal line is database replication. **SG** means security group: the only
-traffic each part accepts.
+Diamonds (◇) are decision points, and the numbered tags (B1, U2 …) are journey steps. Storage is
+drawn as cylinders. Colored zones follow the network: green for public subnets,
+blue for private app subnets, and teal for private data subnets. Each subnet shows its address
+range, and each server shows its security group rule; the full rules are in the tables below.
 
 ## Network
 
@@ -356,9 +385,8 @@ part accepts traffic only from the part directly in front of it.
 The master diagram in [The architecture at a glance](#the-architecture-at-a-glance) shows this
 network with everything else on top of it.
 
-**What's deliberately in one zone:** the background workers and the search index. Work waits
-safely in the queue, and the index can be rebuilt from the source of truth, so a zone failure only
-delays them.
+**Everything runs in both zones:** the load balancer, the API, the workers, and the database
+(primary in one, standby in the other). ECS spreads each service's tasks across the zones.
 
 ### Where each part lives
 
@@ -369,7 +397,6 @@ delays them.
 | Application | Private app subnets | Only the load balancer |
 | Background workers | Private app subnets | No one. They pull work from a queue; nothing calls into them |
 | Database | Private data subnets | Only the application and the workers |
-| Search index | Private data subnets | Only the application and the indexer |
 | Files | Outside the VPC. S3 is a regional service, not part of a subnet | See below |
 
 **Visible to the public is not the same as open to the public.** Both buckets stay private, with
@@ -389,7 +416,7 @@ only listing photos, which are public anyway, never identity documents.
 |---|---|---|
 | Public | NAT gateways only | Directly, through the internet gateway |
 | Private app | Internal load balancer, application, background workers | Outbound only, through the NAT gateway |
-| Private data | Database, search index | None. Data can't leave by any internet path |
+| Private data | Database | None. Data can't leave by any internet path |
 
 The data layer has no route to the internet at all. Even if an attacker got into the database
 server, it couldn't send data out directly.
@@ -414,7 +441,6 @@ the rules keep working when containers change addresses.
 | Application | The application port | The load balancer's security group only |
 | Workers | Nothing | No one |
 | Database | The database port | The application and workers security groups only |
-| Search index | The search port | The application and workers security groups only |
 
 ### Network ACLs: a second layer for the data subnets
 
@@ -437,10 +463,21 @@ outside.
 
 | Destination | Path | Why |
 |---|---|---|
-| S3 (photos, documents) | S3 gateway endpoint | Free, and photo traffic is the largest. Traffic stays inside AWS |
-| AI checks, CRM webhooks, SMS | NAT gateway | The only way out to the internet for private subnets. Replies come back; new connections from outside can't come in |
-| SQS (lead and photo-result queues) | **SQS interface endpoint** | Queuing keeps working even if NAT fails, and lead details (personal data) never leave AWS's network. About $7 a month per zone, so it's in the target design but not the development build |
-| Other AWS services (secrets, logs, container images) | NAT gateway for now | An interface endpoint costs about $7 a month per zone. We add one when traffic or security justifies it |
+| S3 (photos, documents) | S3 gateway endpoint | Free, and photo traffic is the largest. Traffic stays inside AWS. A gateway endpoint is an entry in the private route tables, not a device that traffic passes through |
+| AI services, SMS | NAT gateway | The only way out to the internet for private subnets. Replies come back; new connections from outside can't come in |
+| SQS (upload results queue) | NAT gateway | With one NAT per zone, a NAT failure affects only one zone. An SQS interface endpoint (about $15 a month for two zones) is **optional hardening**, not part of the target |
+| Container images (ECR) | NAT for the registry API; S3 gateway endpoint for image layers | Image layers are stored in S3, so most of the download is free |
+| Other AWS services (secrets, logs) | NAT gateway | An interface endpoint costs about $7 a month per zone. We add one when traffic or security justifies it |
+
+**Cost of the options** (us-east-1 estimates, fixed monthly charges only):
+
+| Setup | About | Verdict |
+|---|---|---|
+| NAT only | $33 per NAT | No. S3 traffic would pay NAT charges for nothing |
+| NAT + S3 gateway endpoint | The same; the gateway endpoint is free | **The baseline** |
+| One NAT per zone | $66 | Target design |
+| Add an SQS interface endpoint | +$15 | Optional hardening |
+| One small NAT instance | $3 | Development build |
 
 **Not used here, and why.** VPC peering and Transit Gateway connect one network to another (VPC to
 VPC, or VPC to an office datacenter). They don't give a private subnet a way out to the internet
@@ -448,16 +485,15 @@ or to AWS services, so they don't solve this problem.
 
 ### One zone or two
 
-High availability matters most for the parts the user waits on. Parts behind a queue, or parts
-that can be rebuilt, can live in one zone.
+High availability matters most for the parts the user waits on, but with ECS, running the workers
+in both zones costs little more than running them in one.
 
 | Part | Target design | Why |
 |---|---|---|
 | Load balancer | Two zones | AWS requires at least two zones for an Application Load Balancer |
 | Application | Two zones | Browsing must keep working if one zone fails |
-| Database | Multi-AZ: a standby in the second zone | Correctness comes first. Failover takes about 1–2 minutes with no lost data |
-| Background workers | One zone | Work waits safely in the queue. If the zone fails, workers restart elsewhere and catch up. Leads may arrive late, but are never lost |
-| Search index | One node | It's a copy. If it's lost, we rebuild it from the source of truth |
+| Database | Multi-AZ: a standby in the second zone | Correctness comes first. The standby is a synchronous copy, so committed transactions survive; failover is automatic and typically takes 1–2 minutes |
+| Background workers | Two zones | ECS runs a worker task in each zone. If one zone fails, the other keeps working; queued work waits safely meanwhile |
 | NAT gateway | One per zone | So losing a zone doesn't stop outbound calls in the other |
 | Files | Automatic | S3 already stores every file across at least three zones |
 
@@ -479,9 +515,9 @@ version, and we switch on Multi-AZ when there are real users."
 
 | Workload | Runs on | Scales on |
 |---|---|---|
-| The application (marketplace and workspace) | **ECS on Fargate**, two or more tasks across two zones | Request load from the load balancer |
-| Background workers | **ECS on Fargate**, same container image, separate ECS service | Number of jobs waiting in the queue |
-| Photo processing | **AWS Lambda**, outside the VPC | One run per queued photo, fed by SQS |
+| The API service (marketplace and workspace) | **ECS on Fargate**, two or more tasks across two zones | Request load from the load balancer |
+| The worker service | **ECS on Fargate**, same container image, separate ECS service, a task in each zone | Number of jobs waiting in the queues |
+| Upload checks | **AWS Lambda**, outside the VPC | One run per queued file, fed by SQS |
 
 ### What each option makes us responsible for
 
@@ -511,11 +547,10 @@ that reacts to an AWS event and never touches the source of truth can be a Lambd
 
 | Job | Runs on | Why |
 |---|---|---|
-| Lead delivery, retries, failed deliveries | ECS worker | Uses the outbox and ledger rules, and may retry for a long time |
-| Updating the search index | ECS worker | Reads the source of truth continuously |
+| Recording upload results | ECS worker, in both zones | Pulls the upload results queue, marks photos approved, and opens review cases. The Lambda function can't, because it has no database access |
 | Bonus credit expiry, ledger reconciliation | ECS worker, started on a schedule | Changes money, so it must use the same tested ledger code as unlocking |
 | Review case automation and AI checks | ECS worker | Writes review cases and trust levels |
-| Photo processing | Lambda | Fed by an SQS queue after the malware scan. Uses Rekognition to find text and unsafe content, resizes the photo, removes GPS location data, and publishes it only if approved |
+| Upload checks | Lambda | Fed by an SQS queue with every malware scan result. Moves unsafe or unscannable files to quarantine. For photos: uses Rekognition to find text and unsafe content, resizes, removes GPS location data, and writes approved photos to the photos bucket. For documents: copies the clean file to the documents bucket. A flagged photo is moved to the `held/` prefix for a moderator. Always sends its result to the upload results queue |
 
 **Why the workers share the application's container image:** there's one build and one copy of the
 business rules, so a worker can never disagree with the application about how credits work. They
@@ -529,7 +564,7 @@ because it's limited to one clear job that fits Lambda well.
 | | Target design | Development build | What we accept |
 |---|---|---|---|
 | Application | Two or more tasks across two zones | One task | Short downtime during deployments or failures |
-| Workers | Regular Fargate | Fargate Spot, up to about 70% cheaper | A worker can be interrupted. Safe, because jobs wait in the queue and are retried |
+| Workers | A task in each zone, regular Fargate | One task on Fargate Spot, up to about 70% cheaper | A worker can be interrupted. Safe, because jobs wait in the queue and are retried |
 | Running time | Always on | Started for working sessions and the demo, then torn down | The system isn't available between sessions |
 
 **Budget rule:** AWS Budgets alerts at $10, $25, and $50 are set up before anything is deployed.
@@ -550,7 +585,7 @@ is **guarantees**. Unlocking a contact must do four things together, or none of 
 1. Take one credit from the right lot (bonus credits first, oldest first)
 2. Add an entry to the ledger
 3. Record the unlock for this seeker and listing
-4. Save the "lead created" event for background delivery (the outbox)
+4. Save the lead for the advertiser
 
 | Business rule | How PostgreSQL enforces it |
 |---|---|
@@ -573,12 +608,27 @@ help at our size.
 | Region failure | Restore from copied backups | Global Database: about 1 second of data loss, about a minute to recover |
 | Smallest sensible size | About $13 a month | About $55 a month, plus storage and I/O |
 
-We accepted downtime when a Region fails, a 1–2 minute zone failover meets our target, and searches
-go to the search index, not the database. Aurora's strengths are real, but we don't need them yet.
+We accepted downtime when a Region fails, and a 1–2 minute zone failover meets our target. Aurora's
+strengths are real, but we don't need them yet.
 
 **What would change it:** a need to recover from a Region failure within minutes, or reads that
 outgrow one database. Moving is straightforward: create an Aurora read replica of the RDS
 database, then promote it.
+
+### Search at launch
+
+Search runs inside PostgreSQL, without a separate search service:
+
+| Need | PostgreSQL feature |
+|---|---|
+| Search listing text | Full-text search, with a GIN index |
+| Search by area or distance | PostGIS, with a spatial index |
+| Filter by price, rooms, type | Ordinary indexes |
+
+Results are never out of date, there's nothing extra to run or pay for, and there is no indexer.
+**When it would change:** if search slows down the database, a read replica takes the search load
+first. A separate search service (such as OpenSearch) comes only after that, when measurements
+require it.
 
 ### Backups and recovery
 
@@ -586,7 +636,7 @@ Each recovery target in the requirements needs its own mechanism.
 
 | Event | Target | How we meet it |
 |---|---|---|
-| A zone fails | Automatic, within minutes | The Multi-AZ standby takes over in about 1–2 minutes, with no data lost |
+| A zone fails | Automatic, within minutes | The Multi-AZ standby takes over automatically, typically in 1–2 minutes; committed transactions are kept because the copy is synchronous |
 | Data deleted by mistake | Back within 1 hour, losing at most 5 minutes of data | **Point-in-time recovery.** RDS keeps daily snapshots and uploads transaction logs about every 5 minutes, so we can restore to any second up to about 5 minutes ago |
 | The whole Region fails | Hours to a day | **Cross-Region backup replication** copies snapshots and transaction logs to a second Region. Terraform rebuilds the network and compute there, then we restore the database |
 
@@ -602,9 +652,28 @@ Each recovery target in the requirements needs its own mechanism.
 | Other data | Protection |
 |---|---|
 | Photos and documents (S3) | **Versioning** undoes accidental deletes and overwrites; **cross-Region replication** to the second Region. The incoming bucket is not replicated, and a lifecycle rule deletes its objects after 1 day |
-| Search index | Not backed up. Rebuilt from the database |
-| Queued jobs | Not backed up. The outbox in the database is the real record; jobs are re-created from it |
+| Queued jobs | Not backed up. Each upload's status is in the database, so a lost check can be queued again from it |
 | The backups themselves | Locked against deletion with AWS Backup Vault Lock, so stolen credentials can't wipe them |
+
+### Storage classes and lifecycle
+
+S3 has storage classes for data that is rarely read. Each TraceHome bucket gets the class its users
+need:
+
+| Data | Storage class | Why |
+|---|---|---|
+| Website files (web bucket) | S3 Standard | Served through CloudFront and cached at the edge |
+| Approved photos | S3 Standard | Seekers expect photos instantly |
+| Incoming uploads (`uploads/` prefix) | S3 Standard, deleted after 1 day | Only waiting for checks; never kept |
+| Flagged photos (`held/` prefix in the incoming bucket) | S3 Standard, deleted after 30 days | Kept until a moderator approves or rejects them. A lifecycle rule filtered by prefix keeps them out of the 1-day rule |
+| Verification documents, while needed | S3 Standard, strict access | Reviewers open them during checks |
+| Verification documents, after the active period | S3 Glacier Deep Archive, then deleted on the legal deletion date | Kept only because the law may require it; cheapest storage, retrieval takes hours |
+| CloudFront, load balancer, and CloudTrail logs (logs bucket) | S3 Standard for 90 days, then S3 Glacier Flexible Retrieval | Athena reads them for 90 days; after that they are rarely read but kept for years. Athena can't read objects in Glacier |
+| Database backups | AWS Backup and RDS automated backups | Managed by the backup service, not moved by hand |
+
+Lifecycle rules move objects between classes automatically. Glacier classes have minimum storage
+periods and retrieval charges, so they are only for data we rarely expect to read. The exact
+retention periods wait for legal advice.
 
 ### Target versus development build
 
@@ -634,13 +703,42 @@ legal advice on data localization.
 
 ```text
 Phone asks "where is tracehome.com?"
-  → Route 53 answers with an alias record pointing to CloudFront
-  → The phone connects to the nearest CloudFront location over HTTPS
+  → Route 53 answers with an alias record: the address of the nearest CloudFront edge location
+      (Route 53's job ends here; it never carries the page or the photo)
+  → The phone connects straight to that edge over HTTPS
       (CloudFront shows the ACM certificate; the phone checks it)
   → AWS WAF checks the request
   → Cached? CloudFront answers immediately
-  → Not cached? CloudFront forwards it over a private path (VPC origin) to the internal load balancer
+  → Not cached? CloudFront picks the origin by the request's path:
+      /photos/*  → the photos bucket, read through Origin Access Control (OAC)
+      /api/*     → a private path (VPC origin) to the internal load balancer → ECS → RDS
+      everything else (the website's files) → the web bucket, through OAC
+  → The response returns the same way. CloudFront keeps a copy when the content may be cached
 ```
+
+### Route 53 and CloudFront: two different jobs
+
+| | Route 53 | CloudFront |
+|---|---|---|
+| Like | A phone book | A front desk |
+| Job | Answers "what is the address of tracehome.com?" | Receives every request, checks it, answers from cache or asks an origin |
+| Carries traffic? | No, it only answers the lookup | Yes, every request and response |
+| How often | Once; the browser remembers the answer for the record's TTL | Every request |
+
+### CloudFront origins
+
+CloudFront sends each request to one of three **origins**, chosen by **cache behaviors** that
+match the path:
+
+| Path | Origin | How CloudFront reaches it |
+|---|---|---|
+| `/api/*` | Internal Application Load Balancer | VPC origin, a private connection into the private app subnets |
+| `/photos/*` | Photos bucket | Origin Access Control: the bucket policy allows only this distribution to read |
+| Everything else | Web bucket: the website's HTML, JavaScript, and CSS | Origin Access Control |
+
+The website is a **static frontend**: its files are built once, stored in the web bucket, and
+cached at the edge. It calls the API for everything that changes. ECS runs only the API and the
+workers. Both buckets stay private; no one can read them except through CloudFront.
 
 ### CloudFront: what is cached, and for how long
 
@@ -658,8 +756,8 @@ pass through CloudFront for the firewall and HTTPS, but go straight to the appli
 **Why the default is "don't cache":** a single mistake could cache one seeker's balance page and
 show it to another. We turn caching on only for public paths.
 
-**The search index holds public listing data only.** Balances, contacts, and other personal or
-financial data are never copied there.
+**Search results contain public listing data only.** Balances, contacts, and other personal or
+financial data are never part of a public response.
 
 ### The private load balancer
 
@@ -707,68 +805,223 @@ there. A certificate for a load balancer is created in the load balancer's own R
 | WAF | Managed rules, IP reputation, rate limits, Bot Control, fraud prevention on sign-up | Managed rules and rate limits only | Weaker bot defense for made-up data |
 | Caching | As in the table above | The same | No difference |
 
-## Background processing: the event view
+## Key flows on AWS
 
-The network view shows where things live. The event view shows how background work flows, step by
-step, including what happens when something fails.
-
-![TraceHome AWS architecture, event view](docs/event-flows.svg)
-
-*The source is [docs/event-flows.svg](docs/event-flows.svg).*
+The sequence diagrams show each flow message by message, including the decision points and the
+responses the user sees.
 
 ### The rule behind every flow
 
-The user waits only for what must be correct now. Everything else is queued, retried, and, if it
-keeps failing, moved to a **dead-letter queue (DLQ)** that raises an alarm. Nothing is silently
-lost.
+The user waits only for what must be correct now. Everything else goes through a durable queue with
+retries. A message that keeps failing moves to a **dead-letter queue (DLQ)**, and an alarm tells
+the team.
 
 | Term | Meaning |
 |---|---|
 | SQS queue | Holds work until a worker finishes it. If a worker crashes, the message becomes visible again and is retried |
-| Dead-letter queue | Where a message goes after a set number of failed attempts, so one broken message can't block the rest |
+| Visibility timeout | How long a message stays hidden while one worker processes it. Must be at least 6 times the function or job timeout, or a second worker picks it up too |
+| Dead-letter queue | Where a message goes after a set number of failed attempts (3 in our lab), so one broken message can't block the rest. Its retention is longer than the main queue's |
 | Redrive | Moving messages from the DLQ back to the main queue after the problem is fixed |
-| Idempotency | Doing the same work twice has the same effect as doing it once. SQS can deliver a message more than once, so every handler must be idempotent |
+| Partial batch failure | Lambda reports only the failed messages in a batch, so the successful ones aren't processed again |
+| Idempotency | Doing the same work twice has the same effect as once. SQS standard queues deliver at least once, so every handler must be idempotent |
 
-### A · Unlocking a contact and delivering the lead
+### Unlocking a contact
 
-1. One database transaction takes the credit, writes the ledger entry, records the unlock, and saves
-   the "lead created" event (the outbox). The seeker sees the contact at once.
-2. The **outbox relay** (an ECS worker) publishes new outbox events to the **SQS lead queue**.
-3. The **lead delivery worker** sends the lead to the advertiser's CRM, with a lead ID so the CRM can
-   ignore duplicates.
-4. If the CRM fails, the message returns to the queue and is retried with growing waits.
-5. After the last retry, the message moves to the **DLQ**, a CloudWatch alarm fires, and the team
-   fixes the problem and redrives it.
-6. Whatever happens to the CRM, the lead is always visible in the advertiser's TraceHome workspace.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Seeker as Seeker's browser
+    participant Edge as CloudFront + WAF
+    participant API as API (ECS)
+    participant DB as RDS PostgreSQL
+    Seeker->>Edge: Unlock this contact, with a request ID
+    Edge->>API: Through the VPC origin and internal ALB
+    API->>DB: Credits available? Listing live?
+    alt No credits, or listing not live
+        API-->>Seeker: Error, and nothing is spent
+    else Yes
+        API->>DB: One transaction: credit, ledger, unlock, lead
+        DB-->>API: Committed
+        API-->>Seeker: Contact details, shown at once
+    end
+```
 
-### B · Uploading a photo or document
+The whole journey happens while the seeker waits, and nothing runs in the background. The lead is
+saved in the same transaction, so it appears in the advertiser's TraceHome workspace at once.
+Sending leads to an advertiser's own CRM comes after launch, through an outbox and an SQS queue with
+retries and a dead-letter queue (decision 70).
 
-1. The application gives the advertiser a **presigned URL**: a short-lived link that allows one
-   upload to one location. The phone uploads straight to S3, so large files never pass through our
-   servers.
-2. The file lands in the private **incoming bucket**, which is never served to anyone.
-3. **GuardDuty Malware Protection for S3** scans it. **EventBridge** routes the result:
-   - **Infected:** the file is quarantined and the team is alerted.
-   - **Clean document:** moved to the documents bucket. No photo checks are needed.
-   - **Clean photo:** sent to the **SQS photo queue**.
-4. The **photo checks Lambda** uses **Amazon Rekognition** to find text (such as a painted phone
-   number) and unsafe content. It resizes the photo and removes GPS location data.
-5. If approved, the cleaned photo is written to the **photos bucket**, which CloudFront serves.
-6. If a phone number or unsafe content is found, a **review case** is opened: clear cases go back to
-   the advertiser automatically, unclear ones go to a moderator.
-7. Jobs that keep failing go to the photo DLQ, which raises an alarm.
+### Uploading a photo
 
-**Why a separate incoming bucket:** if Lambda wrote back to the bucket CloudFront serves, an
-unchecked photo, with GPS location or a phone number on it, could be public for a moment. With a
-separate bucket, an unchecked photo can't be served, because it is never where CloudFront looks.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Adv as Advertiser's browser
+    participant API as API (ECS)
+    participant In as S3 incoming bucket
+    participant GD as GuardDuty
+    participant EB as EventBridge
+    participant PQ as SQS photo queue
+    participant Fn as Lambda + Rekognition
+    participant Out as S3 photos bucket
+    participant RQ as SQS upload results queue
+    participant W as Worker (ECS)
+    participant DB as RDS PostgreSQL
+    Adv->>API: May I upload a photo to this listing?
+    API->>API: Check the advertiser and listing limits, sign a presigned URL
+    API-->>Adv: Presigned URL (valid for minutes)
+    Adv->>In: Upload the photo directly
+    In-->>Adv: Uploaded. The app shows "checking"
+    GD->>In: Scan the new file
+    GD->>EB: Scan result
+    EB->>PQ: Queue every scan result
+    PQ->>Fn: Deliver the job
+    alt Threat found, scan failed, or file unsupported
+        Fn->>In: Move the file to quarantine. Never published, and the team is alerted
+        Fn->>RQ: Result: rejected, with the reason
+    else No threats found
+        Fn->>In: Read the photo
+        Fn->>Fn: Rekognition: text and unsafe content. Resize, remove GPS data
+        alt Approved
+            Fn->>Out: Write the cleaned photo
+            Fn->>RQ: Result: approved
+        else Phone number or unsafe content
+            Fn->>In: Move the photo to held/, kept for a moderator
+            Fn->>RQ: Result: flagged, with the reason
+        end
+        W->>RQ: Receive the result
+        W->>DB: Mark approved, or open a review case
+    end
+    Adv->>API: What's my photo's status?
+    API->>DB: Read the status
+    API-->>Adv: Approved, or under review with the reason
+```
 
-### C · Scheduled jobs and keeping search current
+Two kinds of response are easy to confuse: **"uploaded"** comes back from S3 straight away, but
+**"approved"** comes only after the scan and the checks. A job that keeps failing moves to the
+photo DLQ, and the photo stays unpublished: a failure is never treated as approval.
 
-- **EventBridge Scheduler** starts ECS tasks from the worker image for bonus credit expiry and
-  ledger reconciliation. Jobs that change money use the same tested ledger code as unlocking.
-- **Search updates** follow the outbox pattern: a listing change is saved with an outbox event, and
-  the indexer updates the search index within a minute. If the index is lost, it is rebuilt from
-  the database.
+**Who moves the files:** GuardDuty only scans and reports, and EventBridge only routes events;
+neither can move a file. EventBridge sends **every** scan result to the photo queue, and the Lambda
+function makes every decision in one place: it moves unsafe or unscannable files to quarantine,
+checks clean photos, and copies clean documents. A scheduled job catches what never arrives (see
+below).
+
+### Verification documents
+
+A verification document (an ID or a title deed) enters the same way as a photo, but leaves
+differently:
+
+| Step | Photo | Verification document |
+|---|---|---|
+| Upload | Presigned URL → incoming bucket | The same |
+| Malware scan | GuardDuty → EventBridge → SQS → Lambda | The same |
+| The Lambda function's job | Rekognition checks, resize, remove GPS data | No photo checks; it copies the clean file |
+| Where it goes | Photos bucket, served to everyone through CloudFront | **Documents bucket**: private, encrypted with KMS, never behind CloudFront |
+| The result | Results queue → worker → photo marked approved, or a review case | Results queue → worker → **always a review case** for a moderator |
+| Who can open it | Everyone | A moderator, through a short-lived presigned link from the API. Every access is recorded |
+
+**Why the difference:** a photo is meant to be public, so the checks decide whether to publish it.
+A document is meant to stay private, so the checks only decide whether it's safe to store. A person
+then decides whether it's genuine (principle 4).
+
+### Scheduled jobs
+
+**EventBridge Scheduler** starts ECS tasks from the worker image for bonus credit expiry and
+ledger reconciliation. Jobs that change money use the same tested ledger code as unlocking.
+
+A **stuck-upload check** runs every 15 minutes. Any upload still "checking" after 30 minutes, for
+example because a scan result never arrived, is flagged for the team, and the advertiser sees
+"still checking" rather than a false approval.
+
+### How the workers get their work
+
+SQS never calls a worker. Each worker **pulls**:
+
+1. It asks the queue for messages with **long polling**: SQS holds the request open for up to 20
+   seconds and answers as soon as a message arrives.
+2. SQS gives the message to **one** worker and hides it from the others for the visibility timeout.
+3. The worker does the work, such as recording a photo's result in the database.
+4. Only then does it **delete** the message. If the worker crashes first, the message reappears
+   after the visibility timeout, and the other worker takes it.
+
+Standard queues deliver **at least once**, so a message can rarely arrive twice. Every handler is
+idempotent: setting a photo to approved twice leaves it approved, and a unique constraint stops a
+second review case for the same photo. (With SQS → Lambda, the Lambda service does this polling
+for us.)
+
+### Flagged photos
+
+A photo that fails the content checks is not copied to the photos bucket. The Lambda function
+moves it to the `held/` prefix, a worker sets its status to "under review" and opens a review case,
+and a moderator decides: approve (the photo is copied to the photos bucket) or reject (the
+advertiser is told why).
+
+## Reliability view
+
+```mermaid
+flowchart TB
+    subgraph zone["A whole Availability Zone fails"]
+        z1["ALB sends traffic to API tasks in the other zone"]
+        z2["RDS standby becomes primary automatically, typically 1–2 minutes; committed data kept"]
+        z3["ECS starts replacement tasks in the healthy zone"]
+        z4["The other zone's NAT gateway keeps outbound calls working"]
+    end
+    subgraph job["A background job keeps failing"]
+        j1["Retried after each visibility timeout"]
+        j2["After 3 failures: moved to the dead-letter queue"]
+        j3["CloudWatch alarm: the DLQ is not empty"]
+        j4["Team fixes the cause, then redrives the messages"]
+        j1 --> j2 --> j3 --> j4
+    end
+    subgraph data["Data deleted by mistake"]
+        d1["Point-in-time recovery to a new database"]
+        d2["Back within 1 hour, losing at most 5 minutes"]
+        d1 --> d2
+    end
+    subgraph region["The whole Region fails"]
+        r1["Backups and S3 files are already copied to a second Region"]
+        r2["Terraform rebuilds the network and services there"]
+        r3["Restore the database; hours to a day of downtime, accepted"]
+        r1 --> r2 --> r3
+    end
+```
+
+### Active-active and active-passive
+
+| Part | Approach | Why |
+|---|---|---|
+| Application and workers | **Active-active**: tasks run in both zones at the same time | They are stateless, so any task can serve any request or message. Both zones do real work, and a zone failure needs no switchover |
+| RDS PostgreSQL | **Active-passive**: the standby only copies until it takes over | Money needs one source of truth. Two databases accepting writes could spend the same credit twice |
+
+The development build may run one task of each service to save money, and accepts that it does not
+survive a zone failure.
+
+## Delivery: from code to running service
+
+```text
+Push to GitHub → CodePipeline → CodeBuild: run tests, build the image, scan it → ECR → ECS rolling deployment
+```
+
+| Step | Service | What happens |
+|---|---|---|
+| D1 · Source | GitHub, connected to CodePipeline | A merge to the main branch starts the pipeline. The connection uses AWS CodeConnections, so no GitHub password or key is stored in AWS |
+| D2 · Build | CodeBuild | Runs the tests and builds one container image for both the API and the workers. A failed test stops the pipeline |
+| D3 · Store | Amazon ECR | Stores the image, tagged with the commit ID, and scans it for known vulnerabilities |
+| D4 · Deploy | ECS rolling deployment | Starts new tasks, waits until they pass the load balancer's health checks, then stops the old ones. The deployment circuit breaker rolls back automatically if new tasks keep failing |
+
+**Infrastructure** (the VPC, subnets, ECS services, RDS, queues, and buckets) is defined in
+**Terraform** in the same repository, and changed through pull requests like the code. A database
+migration runs as a one-off ECS task before the new version starts.
+
+**Secrets are never in the image.** The database password lives in AWS Secrets Manager, and ECS
+gives it to the task at start-up. (The security section will cover this in detail.)
+
+| | Target design | Development build |
+|---|---|---|
+| Pipeline | CodePipeline + CodeBuild on every merge | The same: the cost is low, and it's worth practising |
+| Deployment | Rolling, with health checks and automatic rollback | The same |
+| Approval | A manual approval step before production | Not needed: there is only one environment |
 
 ## Operations and admin access
 
@@ -780,6 +1033,7 @@ separate bucket, an unchecked photo can't be served, because it is never where C
 | CloudTrail | Records every AWS API call in the account: who changed what, and when |
 | GuardDuty | Detects threats across the account, and scans uploads for malware |
 | Systems Manager | Admin sessions without SSH (see below) |
+| AWS Backup | Copies database backups to a second Region; Vault Lock stops anyone deleting them |
 | AWS Budgets | Cost alerts at $10, $25, and $50 |
 | IAM | One role per workload, each with only the permissions it needs |
 
@@ -796,6 +1050,29 @@ There is **no bastion host, no SSH key, and no open port 22.**
 **Why:** a bastion host is one more server to patch, and SSH keys can be stolen or copied. With
 Session Manager, access is controlled by IAM and every session leaves a record.
 
+## Analytics
+
+**Athena runs SQL over files stored in S3.** There is no server, and it charges by the data each
+query scans (about $5 per TB). So the question is which data to put in S3.
+
+| Source | Use with Athena? | Why |
+|---|---|---|
+| CloudFront and load balancer logs → logs bucket | **Yes, at launch** | Already written to S3, almost free to query, and no load on the database |
+| CloudTrail logs | Yes | Security questions, such as "who changed this security group?" |
+| RDS snapshot export to S3 (Parquet) | Later | Business numbers such as unlocks per area: a nightly copy, never the live database |
+| RDS primary | **No** | Analytics must never slow down unlocks (principle 7) |
+| A read replica | Not with Athena | A replica serves SQL reports; it is a different tool |
+| CloudWatch Logs | Not directly | CloudWatch Logs Insights queries those |
+
+**Marketplace insights at launch:** CloudFront logs → logs bucket → **AWS Glue Data Catalog** (the
+table definition) → **Athena**. Example questions: the busiest hours, the most-viewed pages, how
+much traffic comes from phones, and what WAF blocked. Logs show traffic, not intent: reliable search
+analytics (which areas seekers look for) come later, from structured search events the application
+writes.
+
+Logs contain IP addresses, which are personal data. They are kept only as long as the lifecycle
+rules allow, and the build uses made-up traffic.
+
 ## Lessons from a reference architecture
 
 We compared our design with a senior architect's layered AWS diagram for a video platform.
@@ -809,21 +1086,22 @@ We compared our design with a senior architect's layered AWS diagram for a video
 - Admin access through Systems Manager instead of SSH
 - Network ACLs on the data subnets as a second layer
 - A management plane: CloudWatch, CloudTrail, GuardDuty
-- Splitting the picture into views (network and event) so each stays readable
+- One main diagram that reads top to bottom like a request, with background parts below and labelled lines
 
 **What we deferred, and why:**
 
 | Service | Why not yet |
 |---|---|
-| Kinesis, Apache Flink, Firehose, Athena, QuickSight | No real-time analytics need yet. Each adds cost and operations |
+| Kinesis, Apache Flink, Firehose, QuickSight | No real-time analytics need yet. Each adds cost and operations. Athena is adopted for log analytics (see Analytics) |
 | Amazon Personalize | Recommendations come after we have real usage data |
 | MediaConvert | TraceHome is photo-first. Revisit if video tours are added |
 | ElastiCache (Redis) | Add when a measured caching or rate-limiting need appears. Never the authority for money |
-| RDS read replicas | Searches go to the search index, so the database isn't read-heavy |
+| RDS read replicas | Search runs on PostgreSQL at launch. A read replica is the first step if search load grows |
 | RDS Proxy | No Lambda function connects to our database |
 | EFS | No shared file system is needed; files live in S3 |
 
 **What we do differently on purpose:** WAF and CloudFront are drawn outside the Region, because
 neither lives in a subnet. Availability Zones are shown, so it's visible what survives a zone
-failure. And the load balancer is internal, so the firewall can't be bypassed.
+failure. The load balancer is internal, so the firewall can't be bypassed. And every journey ends at
+the browser, not just with the request coming in.
 

@@ -5,7 +5,7 @@ A trusted property platform for selling and renting homes, starting in Addis Aba
 **Team:** Getasil Desaleng, Seid Endris, Zerubabel Jember (Evangadi AWS, Group 9)
 
 > **Status: AWS architecture design.** Requirements and the logical architecture are agreed. We're
-> now mapping each part to AWS, one layer at a time. Network, compute, data, edge, background processing, and operations are decided.
+> now mapping each part to AWS, one layer at a time. Network, compute, data, edge, background processing, delivery, and operations are decided.
 
 ## Why this repository exists
 
@@ -134,6 +134,23 @@ decision with a better argument or new evidence. Decided items move to the decis
 | 59 | 10 Nov | One master diagram shows the network and the event flows together; it's presented one journey at a time, with the event view as a deep dive | The audience sees one picture; each teammate can present one journey | None expected |
 | 60 | 10 Nov | An SQS interface endpoint in the target design; not in the development build | Queuing survives a NAT failure, and lead data stays inside AWS | Cost outweighs the benefit at very low volume |
 | 61 | 10 Nov | An interactive presenter page for the live presentation, plus static images of each journey in the repository | Live walkthrough for Zoom; images for anyone reviewing later | None expected |
+| 62 | 12 Nov | Search runs inside PostgreSQL at launch (full-text search and PostGIS); no separate search index or indexer | Never out of date, nothing extra to run or pay for | Search slows the database: add a read replica first, then a search service |
+| 63 | 12 Nov | The SQS interface endpoint becomes optional hardening, not part of the target (reverses decision 60) | With one NAT per zone, a NAT failure affects only one zone | Security review requires queue traffic on private endpoints |
+| 64 | 12 Nov | Workers run in both zones as an ECS service; no standby box | That's how ECS runs a service; it costs little more | None expected |
+| 65 | 12 Nov | Delivery: GitHub → CodePipeline → CodeBuild → ECR → ECS rolling deployment with automatic rollback; infrastructure in Terraform | Every change is tested, built once, and deployed safely, all inside AWS | The team prefers GitHub Actions |
+| 66 | 12 Nov | Upload checks start from GuardDuty's scan result, not from the upload; infected, unsupported, or failed scans are never published | Nothing is processed before it's scanned | None expected |
+| 67 | 12 Nov | The Lambda function sends every result to a photo-results queue; a worker updates the database. The same function copies clean documents | The Lambda keeps no database access; EventBridge can't copy files | None expected |
+| 68 | 12 Nov | The main diagram is drawn in bands with AWS icons, named doors, decision points, and responses back to the browser; sequence diagrams and a reliability view replace the event view (updates decision 59) | Every flow has a clear start, decisions, and end | None expected |
+| 69 | 12 Nov | S3 lifecycle: incoming files deleted after 1 day; logs and expired documents move to Glacier classes; active photos stay in S3 Standard | Pay archive prices only for data that's rarely read | Legal advice sets different retention periods |
+| 70 | 12 Nov | Sending leads to advertisers' CRMs moves after launch. Each lead is saved in the unlock transaction and shown in the advertiser's workspace (updates decisions 25 and 53) | The workspace already delivers every lead; the upload pipeline still teaches queues, retries, and DLQs; a simpler launch | Advertisers ask for CRM integration; then add an outbox, an SQS lead queue, and a DLQ |
+| 71 | 12 Nov | The main diagram returns to the first diagram's style: top to bottom (public, app, and data subnets as rows), centred text, cylinders for storage, labelled step tags, no icons, and no separate response lines. The background parts sit below it under plain names instead of "bands" (updates decision 68) | Teammates read it the way a request travels; fewer lines and less clutter | None expected |
+| 72 | 13 Nov | The website is a static frontend in a private web bucket. CloudFront picks the origin by path: `/api/*` → VPC origin → internal ALB, `/photos/*` → photos bucket, everything else → web bucket, both buckets through Origin Access Control | Website files load from the edge cache; ECS runs only the API and workers; a classic, cheap pattern | Pages need server-side rendering, for example for search engines |
+| 73 | 13 Nov | Verification documents share the upload and scan path, then go to a private KMS-encrypted documents bucket. Every document opens a review case, and moderators open it only through a short-lived presigned link | Documents must never be public; a person decides whether a document is genuine | Legal advice changes how documents are stored |
+| 74 | 13 Nov | Log analytics with Athena: CloudFront, load balancer, and CloudTrail logs in a logs bucket, tables in the Glue Data Catalog. Never query the live database for analytics | Pay per query, no servers, no load on the database | Business reporting needs database data; then add a nightly RDS snapshot export to S3 |
+| 75 | 13 Nov | Flagged photos move to a `held/` prefix in the incoming bucket, kept for 30 days; the 1-day deletion rule applies only to `uploads/` | A moderator can take more than a day; nothing is lost before a decision | Moderators need longer |
+| 76 | 13 Nov | The photo-results queue is renamed the upload results queue; workers in both zones pull from it, active-active, while RDS stays active-passive | Clear names; stateless compute shares the work, money keeps one source of truth | None expected |
+| 77 | 13 Nov | EventBridge sends every GuardDuty scan result to the photo queue; the Lambda function moves unsafe or unscannable files to quarantine. A scheduled job flags uploads still "checking" after 30 minutes (corrects decision 66) | GuardDuty and EventBridge can't move files; one place makes every decision; nothing waits forever | None expected |
+| 78 | 13 Nov | Moderators open documents only through the API, which checks permission and issues a presigned link. A clean scan means no malware found, not that a document is genuine | The bucket never pushes files to anyone; a person decides authenticity | None expected |
 
 ### Our edge over Telegram groups
 
@@ -148,7 +165,7 @@ decision with a better argument or new evidence. Decided items move to the decis
 - Real payment processing; credit purchases will be simulated until we've checked the rules
 - Real users' personal data; we'll use made-up data
 - Ideas parked for later: voice feedback, AI assistants, messaging apps, social media publishing,
-  and integrations beyond a simple lead hand-off
+  and integrations such as sending leads to advertisers' CRMs (after launch, decision 70)
 
 ## Team rules
 
