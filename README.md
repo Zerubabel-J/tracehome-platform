@@ -153,6 +153,7 @@ decision with a better argument or new evidence. Decided items move to the decis
 | 78 | 13 Nov | Moderators open documents only through the API, which checks permission and issues a presigned link. A clean scan means no malware found, not that a document is genuine | The bucket never pushes files to anyone; a person decides authenticity | None expected |
 | 79 | 13 Nov | The two queues are named by their jobs: the photo processing queue (work waiting for the Lambda) and the upload results queue (decisions waiting to be recorded). CloudFront, ALB, and WAF logging is turned on to the logs bucket, with Glue tables, for Athena. The main request path is drawn thicker | Clear names; analytics that actually work; the core path is seen first | None expected |
 | 80 | 13 Nov | The Lambda function publishes only on a clean scan of the current object version (versioning on the incoming bucket). CodePipeline's deploy stage updates ECS; ECR only stores images. Long paths use numbered connectors. RDS failover is described as automatic, with a duration that varies | No stale scan can approve a replaced file; the deployment chain is complete; claims we can defend | None expected |
+| 81 | 13 Nov | No Terraform: infrastructure is created in the console and with the AWS CLI, and documented in the repository. The main diagram uses only full, unbroken lines (updates decision 65) | Less to learn and maintain for the lab build; connectors confused the team | We need a second environment, or must rebuild in another Region quickly |
 
 ### Our edge over Telegram groups
 

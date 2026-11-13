@@ -319,7 +319,7 @@ request travels: the browser, the edge, then inside the VPC the public, app, and
 | Queues | Carries upload results from the checks to the workers | SQS upload results queue and its dead-letter queue |
 | Checking uploads | Scans and checks every upload before anything is published | S3, GuardDuty, EventBridge, SQS, Lambda, Rekognition |
 | Analytics | Answers business questions from logs, without touching the database | S3 logs bucket, Glue Data Catalog, Athena |
-| Delivery | Turns a code change into running containers | GitHub, CodePipeline, CodeBuild, ECR, Terraform |
+| Delivery | Turns a code change into running containers | GitHub, CodePipeline, CodeBuild, ECR, ECS |
 | Operations | Watches everything above | CloudWatch, CloudTrail, GuardDuty, Systems Manager, AWS Backup, IAM, Budgets |
 
 ### How the parts talk to each other
@@ -370,9 +370,7 @@ something fails.
 | Dashed teal | Database replication to the standby |
 | Purple | Deployment: from code to running containers |
 
-Diamonds (◇) are decision points, and the numbered tags (B1, U2 …) are journey steps. A circled tag is a
-**connector**: instead of a long line around the page, the path continues at the circle with the same
-tag (P3 from the browser to the incoming bucket, B3 from CloudFront to the photos bucket). Storage is
+Diamonds (◇) are decision points, and the numbered tags (B1, U2 …) are journey steps. Storage is
 drawn as cylinders. Colored zones follow the network: green for public subnets,
 blue for private app subnets, and teal for private data subnets. Each subnet shows its address
 range, and each server shows its security group rule; the full rules are in the tables below.
@@ -641,7 +639,7 @@ Each recovery target in the requirements needs its own mechanism.
 |---|---|---|
 | A zone fails | Automatic, within minutes | The Multi-AZ standby takes over automatically, typically in 1–2 minutes though the duration varies; committed transactions are kept because the copy is synchronous |
 | Data deleted by mistake | Back within 1 hour, losing at most 5 minutes of data | **Point-in-time recovery.** RDS keeps daily snapshots and uploads transaction logs about every 5 minutes, so we can restore to any second up to about 5 minutes ago |
-| The whole Region fails | Hours to a day | **Cross-Region backup replication** copies snapshots and transaction logs to a second Region. Terraform rebuilds the network and compute there, then we restore the database |
+| The whole Region fails | Hours to a day | **Cross-Region backup replication** copies snapshots and transaction logs to a second Region. We rebuild the network and compute there by following our documented setup, then restore the database. Without infrastructure as code this takes longer; it's the main reason to add it later |
 
 **Three things to remember:**
 
@@ -991,7 +989,7 @@ flowchart TB
     end
     subgraph region["The whole Region fails"]
         r1["Backups and S3 files are already copied to a second Region"]
-        r2["Terraform rebuilds the network and services there"]
+        r2["We rebuild the network and services there from our documented setup"]
         r3["Restore the database; hours to a day of downtime, accepted"]
         r1 --> r2 --> r3
     end
@@ -1021,8 +1019,9 @@ Push to GitHub → CodePipeline → CodeBuild: run tests, build the image → EC
 | D3 · Store | Amazon ECR | Stores the image, tagged with the commit ID, and scans it for known vulnerabilities. ECR only stores images; pushing one deploys nothing |
 | D4 · Deploy | CodePipeline's ECS deploy stage | Updates the API and worker services to the new image. ECS starts new tasks in both zones, waits until they pass the load balancer's health checks, then stops the old ones. The deployment circuit breaker rolls back automatically if new tasks keep failing |
 
-**Infrastructure** (the VPC, subnets, ECS services, RDS, queues, and buckets) is defined in
-**Terraform** in the same repository, and changed through pull requests like the code. A database
+**Infrastructure** (the VPC, subnets, ECS services, RDS, queues, and buckets) is created in the
+AWS console and with the AWS CLI, and every resource and setting is written down in this
+repository. We chose not to use infrastructure as code for now (decision 81). A database
 migration runs as a one-off ECS task before the new version starts.
 
 **Secrets are never in the image.** The database password lives in AWS Secrets Manager, and ECS
@@ -1115,6 +1114,7 @@ We compared our design with a senior architect's layered AWS diagram for a video
 | RDS read replicas | Search runs on PostgreSQL at launch. A read replica is the first step if search load grows |
 | RDS Proxy | No Lambda function connects to our database |
 | EFS | No shared file system is needed; files live in S3 |
+| Terraform or CloudFormation | Not needed for a three-person lab build; resources are created in the console and documented. Add it before a second environment or a Region rebuild is needed |
 
 **What we do differently on purpose:** WAF and CloudFront are drawn outside the Region, because
 neither lives in a subnet. Availability Zones are shown, so it's visible what survives a zone
