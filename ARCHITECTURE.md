@@ -352,7 +352,8 @@ show them step by step.
 
 **For the presentation:** an interactive version steps through each journey one step at a time,
 with talking points and expected questions:
-[TraceHome Architecture](https://claude.ai/artifact/BHocuNmppuiZ96L7uuC2SX).
+[docs/presenter.html](docs/presenter.html). Download or clone the repository and open the file in a
+browser; it needs no server. Keys: → next step, ← back, 0–5 jump to a journey.
 
 **For detailed questions:** [sequence diagrams](#key-flows-on-aws) show the unlock and upload
 flows message by message, and the [reliability view](#reliability-view) shows what happens when
