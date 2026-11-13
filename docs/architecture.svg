@@ -4,7 +4,7 @@
 <rect x="1090" y="85" width="680" height="168" rx="10" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
 <text x="1106" y="105" font-size="11" fill="#0F172A" font-weight="700" text-anchor="start">HOW TO READ THIS DIAGRAM</text>
 <path d="M1106,126 H1146" stroke="#334155" stroke-width="2" fill="none" marker-end="url(#m334155)"/>
-<text x="1156" y="130" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Request or data</text>
+<text x="1156" y="130" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Request or data (thick: main path)</text>
 <path d="M1436,126 H1476" stroke="#B45309" stroke-width="2" fill="none" marker-end="url(#mB45309)"/>
 <text x="1486" y="130" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">File</text>
 <path d="M1106,150 H1146" stroke="#BE185D" stroke-width="2" fill="none" marker-end="url(#mBE185D)"/>
@@ -78,7 +78,7 @@
 <path d="M690,135 V145 H530 V182" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#m334155)"/>
 </g>
 <g class="el j-b j-p j-u s-B2 s-U1 s-P1 s-P8">
-<path d="M750,135 V145 H900 V182" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#m334155)"/>
+<path d="M750,135 V145 H900 V182" fill="none" stroke="#334155" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#m334155)"/>
 </g>
 <g class="el j-b s-B3">
 <path d="M1000,250 V268 H1785 V1045 H1402" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round" marker-end="url(#mB45309)"/>
@@ -87,19 +87,19 @@
 <path d="M960,250 V315 H1318 V362" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round" marker-end="url(#mB45309)"/>
 </g>
 <g class="el j-b j-p j-u s-B4 s-U1 s-P1 s-P8">
-<path d="M850,250 V280 H575 V522" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#m334155)"/>
+<path d="M850,250 V280 H575 V522" fill="none" stroke="#334155" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#m334155)"/>
 </g>
 <g class="el j-b j-p j-u s-B5 s-U1 s-P1 s-P8">
-<path d="M425,572 V610" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#m334155)"/>
+<path d="M425,572 V610" fill="none" stroke="#334155" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#m334155)"/>
 </g>
 <g class="el j-b j-r s-B5 s-R2">
-<path d="M735,572 V610" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#m334155)"/>
+<path d="M735,572 V610" fill="none" stroke="#334155" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#m334155)"/>
 </g>
 <g class="el j-b j-p j-u s-B5 s-U2 s-U3 s-P8">
-<path d="M440,685 V760" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#m334155)"/>
+<path d="M440,685 V760" fill="none" stroke="#334155" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#m334155)"/>
 </g>
 <g class="el j-b j-p j-r s-B5 s-P7 s-R2">
-<path d="M690,685 V705 H480 V760" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round" marker-end="url(#m334155)"/>
+<path d="M690,685 V705 H480 V760" fill="none" stroke="#334155" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#m334155)"/>
 </g>
 <g class="el j-p s-P7">
 <path d="M915,685 V705 H690" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round"/>
@@ -262,15 +262,15 @@
 <text x="735.0" y="831.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">automatic failover, ~1–2 min</text>
 </g>
 <g class="el j-x s-X0">
-<rect x="1030" y="695" width="140" height="70" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
-<text x="1100.0" y="718.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">S3 gateway endpoint</text>
-<text x="1100.0" y="734.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">a route-table entry</text>
-<text x="1100.0" y="750.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">free private path to S3</text>
+<rect x="1030" y="695" width="158" height="70" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+<text x="1109.0" y="718.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">S3 gateway endpoint</text>
+<text x="1109.0" y="734.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">a route-table entry</text>
+<text x="1109.0" y="750.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS → S3, not the browser</text>
 </g>
 <g class="el j-p s-P7">
 <rect x="1215" y="596" width="240" height="68" rx="8" fill="#FFFFFF" stroke="#BE185D" stroke-width="2"/>
 <text x="1335.0" y="618.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Upload results queue (SQS)</text>
-<text x="1335.0" y="634.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">Lambda leaves each result</text>
+<text x="1335.0" y="634.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">decisions waiting to be recorded</text>
 <text x="1335.0" y="650.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">worker service pulls, both AZs</text>
 </g>
 <g class="el j-r s-R3">
@@ -302,8 +302,9 @@
 </g>
 <g class="el j-p j-r s-P4 s-P5 s-R3">
 <rect x="730" y="1010" width="170" height="70" rx="8" fill="#FFFFFF" stroke="#BE185D" stroke-width="2"/>
-<text x="815.0" y="1041.25" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">SQS photo queue</text>
-<text x="815.0" y="1057.25" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">+ dead-letter queue</text>
+<text x="815.0" y="1033.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Photo processing queue</text>
+<text x="815.0" y="1049.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">work waiting for the Lambda</text>
+<text x="815.0" y="1065.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SQS · + dead-letter queue</text>
 </g>
 <g class="el j-p s-P5 s-P6 s-P7">
 <rect x="960" y="1010" width="200" height="70" rx="8" fill="#FFFFFF" stroke="#D946EF" stroke-width="2"/>
@@ -408,7 +409,7 @@
 <path d="M1440,789 A75.0,9 0 0 1 1590,789 V871 A75.0,9 0 0 1 1440,871 Z" fill="#FFFFFF" stroke="#B45309" stroke-width="2"/>
 <path d="M1440,789 A75.0,9 0 0 0 1590,789" fill="none" stroke="#B45309" stroke-width="2"/>
 <text x="1515.0" y="821.0" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Logs bucket</text>
-<text x="1515.0" y="837.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">CloudFront · ALB</text>
+<text x="1515.0" y="837.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">CloudFront · ALB · WAF</text>
 <text x="1515.0" y="853.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">CloudTrail logs</text>
 </g>
 <g class="el j-x s-X0">
@@ -656,7 +657,7 @@
 <text x="774" y="1642" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">browser does not wait for the checks</text>
 <text x="746" y="1663" font-size="11.5" fill="#B45309" font-weight="700" text-anchor="start">P4</text>
 <text x="774" y="1663" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">GuardDuty scans the file; EventBridge sends</text>
-<text x="774" y="1678" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">every scan result to the SQS photo queue</text>
+<text x="774" y="1678" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">every scan result to the photo processing queue</text>
 <text x="746" y="1699" font-size="11.5" fill="#B45309" font-weight="700" text-anchor="start">P5</text>
 <text x="774" y="1699" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">The Lambda reads the result. Not clean (threat,</text>
 <text x="774" y="1714" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">failed, unsupported)? It moves the file to</text>

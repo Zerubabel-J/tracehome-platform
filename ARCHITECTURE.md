@@ -818,6 +818,7 @@ the team.
 
 | Term | Meaning |
 |---|---|
+| Our two queues | The **photo processing queue** holds work waiting for the Lambda function. The **upload results queue** holds decisions waiting to be recorded in the database |
 | SQS queue | Holds work until a worker finishes it. If a worker crashes, the message becomes visible again and is retried |
 | Visibility timeout | How long a message stays hidden while one worker processes it. Must be at least 6 times the function or job timeout, or a second worker picks it up too |
 | Dead-letter queue | Where a message goes after a set number of failed attempts (3 in our lab), so one broken message can't block the rest. Its retention is longer than the main queue's |
@@ -861,7 +862,7 @@ sequenceDiagram
     participant In as S3 incoming bucket
     participant GD as GuardDuty
     participant EB as EventBridge
-    participant PQ as SQS photo queue
+    participant PQ as SQS photo processing queue
     participant Fn as Lambda + Rekognition
     participant Out as S3 photos bucket
     participant RQ as SQS upload results queue
@@ -902,7 +903,7 @@ Two kinds of response are easy to confuse: **"uploaded"** comes back from S3 str
 photo DLQ, and the photo stays unpublished: a failure is never treated as approval.
 
 **Who moves the files:** GuardDuty only scans and reports, and EventBridge only routes events;
-neither can move a file. EventBridge sends **every** scan result to the photo queue, and the Lambda
+neither can move a file. EventBridge sends **every** scan result to the photo processing queue, and the Lambda
 function makes every decision in one place: it moves unsafe or unscannable files to quarantine,
 checks clean photos, and copies clean documents. A scheduled job catches what never arrives (see
 below).
@@ -1057,7 +1058,7 @@ query scans (about $5 per TB). So the question is which data to put in S3.
 
 | Source | Use with Athena? | Why |
 |---|---|---|
-| CloudFront and load balancer logs → logs bucket | **Yes, at launch** | Already written to S3, almost free to query, and no load on the database |
+| CloudFront, load balancer, and WAF logs → logs bucket | **Yes, at launch** | Written to S3 once logging is turned on, almost free to query, and no load on the database |
 | CloudTrail logs | Yes | Security questions, such as "who changed this security group?" |
 | RDS snapshot export to S3 (Parquet) | Later | Business numbers such as unlocks per area: a nightly copy, never the live database |
 | RDS primary | **No** | Analytics must never slow down unlocks (principle 7) |
@@ -1069,6 +1070,10 @@ table definition) → **Athena**. Example questions: the busiest hours, the most
 much traffic comes from phones, and what WAF blocked. Logs show traffic, not intent: reliable search
 analytics (which areas seekers look for) come later, from structured search events the application
 writes.
+
+None of this is automatic. Each log type must have **logging turned on** (CloudFront standard logs,
+ALB access logs, and WAF logging to the logs bucket), and each format needs a **table definition in
+the Glue Data Catalog** before Athena can query it.
 
 Logs contain IP addresses, which are personal data. They are kept only as long as the lifecycle
 rules allow, and the build uses made-up traffic.

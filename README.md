@@ -151,6 +151,7 @@ decision with a better argument or new evidence. Decided items move to the decis
 | 76 | 13 Nov | The photo-results queue is renamed the upload results queue; workers in both zones pull from it, active-active, while RDS stays active-passive | Clear names; stateless compute shares the work, money keeps one source of truth | None expected |
 | 77 | 13 Nov | EventBridge sends every GuardDuty scan result to the photo queue; the Lambda function moves unsafe or unscannable files to quarantine. A scheduled job flags uploads still "checking" after 30 minutes (corrects decision 66) | GuardDuty and EventBridge can't move files; one place makes every decision; nothing waits forever | None expected |
 | 78 | 13 Nov | Moderators open documents only through the API, which checks permission and issues a presigned link. A clean scan means no malware found, not that a document is genuine | The bucket never pushes files to anyone; a person decides authenticity | None expected |
+| 79 | 13 Nov | The two queues are named by their jobs: the photo processing queue (work waiting for the Lambda) and the upload results queue (decisions waiting to be recorded). CloudFront, ALB, and WAF logging is turned on to the logs bucket, with Glue tables, for Athena. The main request path is drawn thicker | Clear names; analytics that actually work; the core path is seen first | None expected |
 
 ### Our edge over Telegram groups
 
