@@ -370,7 +370,9 @@ something fails.
 | Dashed teal | Database replication to the standby |
 | Purple | Deployment: from code to running containers |
 
-Diamonds (◇) are decision points, and the numbered tags (B1, U2 …) are journey steps. Storage is
+Diamonds (◇) are decision points, and the numbered tags (B1, U2 …) are journey steps. A circled tag is a
+**connector**: instead of a long line around the page, the path continues at the circle with the same
+tag (P3 from the browser to the incoming bucket, B3 from CloudFront to the photos bucket). Storage is
 drawn as cylinders. Colored zones follow the network: green for public subnets,
 blue for private app subnets, and teal for private data subnets. Each subnet shows its address
 range, and each server shows its security group rule; the full rules are in the tables below.
@@ -493,7 +495,7 @@ in both zones costs little more than running them in one.
 |---|---|---|
 | Load balancer | Two zones | AWS requires at least two zones for an Application Load Balancer |
 | Application | Two zones | Browsing must keep working if one zone fails |
-| Database | Multi-AZ: a standby in the second zone | Correctness comes first. The standby is a synchronous copy, so committed transactions survive; failover is automatic and typically takes 1–2 minutes |
+| Database | Multi-AZ: a standby in the second zone | Correctness comes first. The standby is a synchronous copy, so committed transactions survive; failover is automatic. It typically takes 1–2 minutes, but the duration varies and isn't guaranteed |
 | Background workers | Two zones | ECS runs a worker task in each zone. If one zone fails, the other keeps working; queued work waits safely meanwhile |
 | NAT gateway | One per zone | So losing a zone doesn't stop outbound calls in the other |
 | Files | Automatic | S3 already stores every file across at least three zones |
@@ -637,7 +639,7 @@ Each recovery target in the requirements needs its own mechanism.
 
 | Event | Target | How we meet it |
 |---|---|---|
-| A zone fails | Automatic, within minutes | The Multi-AZ standby takes over automatically, typically in 1–2 minutes; committed transactions are kept because the copy is synchronous |
+| A zone fails | Automatic, within minutes | The Multi-AZ standby takes over automatically, typically in 1–2 minutes though the duration varies; committed transactions are kept because the copy is synchronous |
 | Data deleted by mistake | Back within 1 hour, losing at most 5 minutes of data | **Point-in-time recovery.** RDS keeps daily snapshots and uploads transaction logs about every 5 minutes, so we can restore to any second up to about 5 minutes ago |
 | The whole Region fails | Hours to a day | **Cross-Region backup replication** copies snapshots and transaction logs to a second Region. Terraform rebuilds the network and compute there, then we restore the database |
 
@@ -665,7 +667,7 @@ need:
 |---|---|---|
 | Website files (web bucket) | S3 Standard | Served through CloudFront and cached at the edge |
 | Approved photos | S3 Standard | Seekers expect photos instantly |
-| Incoming uploads (`uploads/` prefix) | S3 Standard, deleted after 1 day | Only waiting for checks; never kept |
+| Incoming uploads (`uploads/` prefix) | S3 Standard, deleted after 1 day | Only waiting for checks; never kept. The bucket has versioning on (for the scan check), so the rule also expires old versions |
 | Flagged photos (`held/` prefix in the incoming bucket) | S3 Standard, deleted after 30 days | Kept until a moderator approves or rejects them. A lifecycle rule filtered by prefix keeps them out of the 1-day rule |
 | Verification documents, while needed | S3 Standard, strict access | Reviewers open them during checks |
 | Verification documents, after the active period | S3 Glacier Deep Archive, then deleted on the legal deletion date | Kept only because the law may require it; cheapest storage, retrieval takes hours |
@@ -909,6 +911,12 @@ function makes every decision in one place: it moves unsafe or unscannable files
 checks clean photos, and copies clean documents. A scheduled job catches what never arrives (see
 below).
 
+**A clean scan of this exact version:** the incoming bucket has versioning on, and GuardDuty's
+result names the object version it scanned. The Lambda function publishes only when the result is
+a clean scan of the **current** version. If a file was replaced after the scan, the new version gets
+its own scan, and the old result can't approve it. No clean result means no publication: the
+stuck-upload check catches results that never arrive.
+
 ### Verification documents
 
 A verification document (an ID or a title deed) enters the same way as a photo, but leaves
@@ -921,7 +929,7 @@ differently:
 | The Lambda function's job | Rekognition checks, resize, remove GPS data | No photo checks; it copies the clean file |
 | Where it goes | Photos bucket, served to everyone through CloudFront | **Documents bucket**: private, encrypted with KMS, never behind CloudFront |
 | The result | Results queue → worker → photo marked approved, or a review case | Results queue → worker → **always a review case** for a moderator |
-| Who can open it | Everyone | A moderator, through a short-lived presigned link from the API. Every access is recorded |
+| Who can open it | Everyone | A moderator: (1) asks the API, which checks permission; (2) gets a short-lived presigned GET URL; (3) downloads straight from S3. Every access is recorded |
 
 **Why the difference:** a photo is meant to be public, so the checks decide whether to publish it.
 A document is meant to stay private, so the checks only decide whether it's safe to store. A person
@@ -965,7 +973,7 @@ advertiser is told why).
 flowchart TB
     subgraph zone["A whole Availability Zone fails"]
         z1["ALB sends traffic to API tasks in the other zone"]
-        z2["RDS standby becomes primary automatically, typically 1–2 minutes; committed data kept"]
+        z2["RDS standby becomes primary automatically, duration varies; committed data kept"]
         z3["ECS starts replacement tasks in the healthy zone"]
         z4["The other zone's NAT gateway keeps outbound calls working"]
     end
@@ -1002,15 +1010,16 @@ survive a zone failure.
 ## Delivery: from code to running service
 
 ```text
-Push to GitHub → CodePipeline → CodeBuild: run tests, build the image, scan it → ECR → ECS rolling deployment
+Push to GitHub → CodePipeline → CodeBuild: run tests, build the image → ECR: store and scan it
+  → CodePipeline's deploy stage → ECS rolling deployment: new tasks in both zones pull the image
 ```
 
 | Step | Service | What happens |
 |---|---|---|
 | D1 · Source | GitHub, connected to CodePipeline | A merge to the main branch starts the pipeline. The connection uses AWS CodeConnections, so no GitHub password or key is stored in AWS |
 | D2 · Build | CodeBuild | Runs the tests and builds one container image for both the API and the workers. A failed test stops the pipeline |
-| D3 · Store | Amazon ECR | Stores the image, tagged with the commit ID, and scans it for known vulnerabilities |
-| D4 · Deploy | ECS rolling deployment | Starts new tasks, waits until they pass the load balancer's health checks, then stops the old ones. The deployment circuit breaker rolls back automatically if new tasks keep failing |
+| D3 · Store | Amazon ECR | Stores the image, tagged with the commit ID, and scans it for known vulnerabilities. ECR only stores images; pushing one deploys nothing |
+| D4 · Deploy | CodePipeline's ECS deploy stage | Updates the API and worker services to the new image. ECS starts new tasks in both zones, waits until they pass the load balancer's health checks, then stops the old ones. The deployment circuit breaker rolls back automatically if new tasks keep failing |
 
 **Infrastructure** (the VPC, subnets, ECS services, RDS, queues, and buckets) is defined in
 **Terraform** in the same repository, and changed through pull requests like the code. A database
@@ -1073,7 +1082,8 @@ analytics (which areas seekers look for) come later, from structured search even
 writes.
 
 None of this is automatic. Each log type must have **logging turned on** (CloudFront standard logs,
-ALB access logs, and WAF logging to the logs bucket), and each format needs a **table definition in
+ALB access logs, and WAF logging delivered to the logs bucket in S3, not to CloudWatch Logs, which
+Athena can't read directly), and each format needs a **table definition in
 the Glue Data Catalog** before Athena can query it.
 
 Logs contain IP addresses, which are personal data. They are kept only as long as the lifecycle

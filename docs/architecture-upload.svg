@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1910" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" preserveAspectRatio="xMidYMin meet" style="display:block;margin:0 auto;max-width:1800px;width:100%"><defs><marker id="m0F766E" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0F766E"/></marker><marker id="m334155" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker><marker id="m7C3AED" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker><marker id="mB45309" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B45309"/></marker><marker id="mBE185D" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#BE185D"/></marker><marker id="mC2410C" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C2410C"/></marker></defs><style>.el{opacity:.1} .el.j-p{opacity:1}</style><rect width="1800" height="1910" fill="#FFFFFF"/><g class="always">
 <text x="40" y="44" font-size="24" fill="#0F172A" font-weight="700" text-anchor="start">TraceHome · AWS architecture · Uploading a photo</text>
-<text x="40" y="68" font-size="13" fill="#64748B" font-weight="400" text-anchor="start">Target design · one Region, two Availability Zones · nothing in the VPC is reachable from the internet · uploads are checked in the background with queues, retries, and alarms</text>
+<text x="40" y="68" font-size="13" fill="#64748B" font-weight="400" text-anchor="start">Target design, not everything is deployed in our lab build · one Region, two Availability Zones · nothing in the VPC is reachable from the internet · uploads are checked in the background with queues, retries, and alarms</text>
 <rect x="1090" y="85" width="680" height="168" rx="10" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
 <text x="1106" y="105" font-size="11" fill="#0F172A" font-weight="700" text-anchor="start">HOW TO READ THIS DIAGRAM</text>
 <path d="M1106,126 H1146" stroke="#334155" stroke-width="2" fill="none" marker-end="url(#m334155)"/>
@@ -20,7 +20,10 @@
 <rect x="1436" y="190" width="24" height="16" rx="8" fill="#334155"/>
 <text x="1448" y="202" font-size="9.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">B1</text>
 <text x="1470" y="202" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Step in a journey (panels below)</text>
-<text x="1106" y="236" font-size="12" fill="#64748B" font-weight="400" text-anchor="start">Every response returns the way its request came, back to the browser.</text>
+<circle cx="1118" cy="218" r="11" fill="#FFFFFF" stroke="#334155" stroke-width="2"/>
+<text x="1118" y="222" font-size="9" fill="#334155" font-weight="700" text-anchor="middle">B3</text>
+<text x="1138" y="222" font-size="12" fill="#0F172A" font-weight="400" text-anchor="start">Connector: the line continues at the circle with the same tag</text>
+<text x="1106" y="244" font-size="12" fill="#64748B" font-weight="400" text-anchor="start">Every response returns the way its request came, back to the browser.</text>
 </g>
 <g class="always">
 <rect x="400" y="152" width="640" height="110" rx="10" fill="#FFF7ED" stroke="#D97706" stroke-width="1.5"/>
@@ -81,7 +84,10 @@
 <path d="M750,135 V145 H900 V182" fill="none" stroke="#334155" stroke-width="3.5" stroke-linejoin="round" marker-end="url(#m334155)"/>
 </g>
 <g class="el j-b s-B3">
-<path d="M1000,250 V268 H1785 V1045 H1402" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round" marker-end="url(#mB45309)"/>
+<path d="M1000,250 V268 H1418" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round"/>
+</g>
+<g class="el j-b s-B3">
+<path d="M1478,1045 H1402" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round" marker-end="url(#mB45309)"/>
 </g>
 <g class="el j-b s-B2">
 <path d="M960,250 V315 H1318 V362" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round" marker-end="url(#mB45309)"/>
@@ -138,7 +144,10 @@
 <path d="M1110,1010 V945 H1320 V662" fill="none" stroke="#BE185D" stroke-width="2" stroke-linejoin="round" marker-end="url(#mBE185D)"/>
 </g>
 <g class="el j-p s-P3">
-<path d="M620,110 H14 V1045 H78" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round" marker-end="url(#mB45309)"/>
+<path d="M620,110 H472" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round"/>
+</g>
+<g class="el j-p s-P3">
+<path d="M57,1045 H78" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round" marker-end="url(#mB45309)"/>
 </g>
 <g class="el j-p s-P4">
 <path d="M250,1045 H300" fill="none" stroke="#B45309" stroke-width="2" stroke-linejoin="round" marker-end="url(#mB45309)"/>
@@ -180,7 +189,10 @@
 <path d="M690,1320 H740" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round" marker-end="url(#m7C3AED)"/>
 </g>
 <g class="el j-d s-D4">
-<path d="M830,1295 V1247" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round" marker-end="url(#m7C3AED)"/>
+<path d="M920,1320 H968" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round" marker-end="url(#m7C3AED)"/>
+</g>
+<g class="el j-d s-D4">
+<path d="M1075,1293 V1247" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round" marker-end="url(#m7C3AED)"/>
 </g>
 <g class="el j-b j-p j-u s-B1 s-B2 s-B5 s-U1 s-U4 s-P1 s-P2 s-P3 s-P8">
 <rect x="620" y="85" width="200" height="50" rx="25" fill="#F1F5F9" stroke="#475569" stroke-width="2"/>
@@ -223,25 +235,25 @@
 <text x="915.0" y="441.25" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">NAT gateway B</text>
 <text x="915.0" y="457.25" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">outbound only</text>
 </g>
-<g class="el j-p j-r s-P7 s-R2">
+<g class="el j-d j-p j-r s-P7 s-R2 s-D4">
 <rect x="110" y="610" width="150" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
 <text x="185.0" y="635.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Worker task · A</text>
 <text x="185.0" y="651.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">one worker service</text>
 <text x="185.0" y="668.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: no inbound</text>
 </g>
-<g class="el j-b j-p j-u s-B5 s-U1 s-U2 s-U3 s-U4 s-P1 s-P2 s-P8">
+<g class="el j-b j-d j-p j-u s-B5 s-U1 s-U2 s-U3 s-U4 s-P1 s-P2 s-P8 s-D4">
 <rect x="330" y="610" width="190" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
 <text x="425.0" y="635.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Application · copy A</text>
 <text x="425.0" y="651.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS on Fargate · one image</text>
 <text x="425.0" y="668.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: load balancer only</text>
 </g>
-<g class="el j-b j-r s-B5 s-R2">
+<g class="el j-b j-d j-r s-B5 s-R2 s-D4">
 <rect x="640" y="610" width="190" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
 <text x="735.0" y="635.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Application · copy B</text>
 <text x="735.0" y="651.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">ECS on Fargate · one image</text>
 <text x="735.0" y="668.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">SG: load balancer only</text>
 </g>
-<g class="el j-p j-r s-P7 s-R2">
+<g class="el j-d j-p j-r s-P7 s-R2 s-D4">
 <rect x="845" y="610" width="140" height="75" rx="8" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="2"/>
 <text x="915.0" y="635.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Worker task · B</text>
 <text x="915.0" y="651.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">one worker service</text>
@@ -259,7 +271,7 @@
 <path d="M640,769 A95.0,9 0 0 0 830,769" fill="none" stroke="#0F766E" stroke-width="2"/>
 <text x="735.0" y="798.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">RDS PostgreSQL · standby</text>
 <text x="735.0" y="814.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">synchronous copy · Multi-AZ</text>
-<text x="735.0" y="831.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">automatic failover, ~1–2 min</text>
+<text x="735.0" y="831.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">automatic failover · time varies</text>
 </g>
 <g class="el j-x s-X0">
 <rect x="1030" y="695" width="158" height="70" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
@@ -333,11 +345,12 @@
 <text x="1310.0" y="1193.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">never behind CloudFront</text>
 </g>
 <g class="el j-p s-P7">
-<rect x="1470" y="1126" width="270" height="88" rx="8" fill="#F4F4F5" stroke="#71717A" stroke-width="2" stroke-dasharray="6 4"/>
-<text x="1605.0" y="1149.75" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Moderator</text>
-<text x="1605.0" y="1165.75" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">API checks permission → presigned link</text>
-<text x="1605.0" y="1182.25" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">a person decides if it is genuine</text>
-<text x="1605.0" y="1198.75" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">every access logged</text>
+<rect x="1470" y="1118" width="270" height="104" rx="8" fill="#F4F4F5" stroke="#71717A" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="1605.0" y="1141.5" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Moderator</text>
+<text x="1605.0" y="1157.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">1 asks the API: permission checked</text>
+<text x="1605.0" y="1174.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">2 gets a presigned GET URL</text>
+<text x="1605.0" y="1190.5" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">3 downloads from S3 · access logged</text>
+<text x="1605.0" y="1207.0" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">a person decides if it is genuine</text>
 </g>
 <g class="el j-d s-D1">
 <rect x="60" y="1293" width="170" height="56" rx="8" fill="#FFFFFF" stroke="#1F2937" stroke-width="2"/>
@@ -359,10 +372,15 @@
 <text x="830.0" y="1317.25" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Amazon ECR</text>
 <text x="830.0" y="1333.25" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">stores and scans images</text>
 </g>
+<g class="el j-d s-D4">
+<rect x="970" y="1293" width="210" height="56" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
+<text x="1075.0" y="1317.25" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">ECS rolling deployment</text>
+<text x="1075.0" y="1333.25" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">CodePipeline deploy stage</text>
+</g>
 <g class="el j-x s-X0">
-<rect x="990" y="1293" width="280" height="56" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2" stroke-dasharray="6 4"/>
-<text x="1130.0" y="1317.25" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Terraform</text>
-<text x="1130.0" y="1333.25" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">defines every resource above</text>
+<rect x="1240" y="1293" width="280" height="56" rx="8" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="1380.0" y="1317.25" font-size="13" fill="#0F172A" font-weight="600" text-anchor="middle">Terraform</text>
+<text x="1380.0" y="1333.25" font-size="11" fill="#64748B" font-weight="400" text-anchor="middle">defines every resource above</text>
 </g>
 <g class="el j-r s-R3">
 <rect x="60" y="1412" width="265" height="54" rx="8" fill="#FFFFFF" stroke="#475569" stroke-width="2"/>
@@ -438,7 +456,7 @@
 <g class="el j-p s-P5">
 <path d="M860,1107 L871,1118 L860,1129 L849,1118 Z" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
 <text x="860" y="1122" font-size="11" fill="#7C3AED" font-weight="700" text-anchor="middle">?</text>
-<text x="860" y="1101" font-size="11" fill="#7C3AED" font-weight="600" text-anchor="middle">scan clean?</text>
+<text x="860" y="1101" font-size="11" fill="#7C3AED" font-weight="600" text-anchor="middle">clean scan of this version?</text>
 </g>
 <g class="el j-p s-P6">
 <path d="M1190,1034 L1201,1045 L1190,1056 L1179,1045 Z" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2"/>
@@ -509,10 +527,10 @@
 <text x="575.0" y="466" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">P1</text>
 </g>
 <g class="el j-p s-P3">
-<rect x="272.35" y="100" width="115.3" height="20" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="1.2"/>
-<rect x="272.35" y="100" width="24" height="20" rx="10" fill="#B45309"/>
-<text x="284.35" y="114" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">P3</text>
-<text x="301.35" y="114" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">direct upload</text>
+<rect x="487.35" y="100" width="115.3" height="20" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="1.2"/>
+<rect x="487.35" y="100" width="24" height="20" rx="10" fill="#B45309"/>
+<text x="499.35" y="114" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">P3</text>
+<text x="516.35" y="114" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">direct upload</text>
 </g>
 <g class="el j-p s-P4">
 <rect x="263.0" y="1035" width="24" height="20" rx="10" fill="#FFFFFF" stroke="#B45309" stroke-width="1.2"/>
@@ -579,10 +597,15 @@
 <text x="715.0" y="1324" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">D3</text>
 </g>
 <g class="el j-d s-D4">
-<rect x="702.2" y="1248" width="255.6" height="20" rx="10" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.2"/>
-<rect x="702.2" y="1248" width="24" height="20" rx="10" fill="#7C3AED"/>
-<text x="714.2" y="1262" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">D4</text>
-<text x="731.2" y="1262" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">ECS pulls the new image into the VPC</text>
+<rect x="933.0" y="1310" width="24" height="20" rx="10" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.2"/>
+<rect x="933.0" y="1310" width="24" height="20" rx="10" fill="#7C3AED"/>
+<text x="945.0" y="1324" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">D4</text>
+</g>
+<g class="el j-d s-D4">
+<rect x="941.1" y="1248" width="267.79999999999995" height="20" rx="10" fill="#FFFFFF" stroke="#7C3AED" stroke-width="1.2"/>
+<rect x="941.1" y="1248" width="24" height="20" rx="10" fill="#7C3AED"/>
+<text x="953.1" y="1262" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">D4</text>
+<text x="970.1" y="1262" font-size="11" fill="#0F172A" font-weight="500" text-anchor="start">new tasks in AZ A and B pull the image</text>
 </g>
 <g class="el j-r s-R1">
 <rect x="540.65" y="772" width="78.69999999999999" height="20" rx="10" fill="#FFFFFF" stroke="#0F766E" stroke-width="1.2"/>
@@ -604,6 +627,24 @@
 <rect x="1538.0" y="1456" width="24" height="20" rx="10" fill="#FFFFFF" stroke="#0F766E" stroke-width="1.2"/>
 <rect x="1538.0" y="1456" width="24" height="20" rx="10" fill="#0F766E"/>
 <text x="1550.0" y="1470" font-size="10.5" fill="#FFFFFF" font-weight="700" text-anchor="middle">R4</text>
+</g>
+<g class="el j-p s-P3">
+<circle cx="460" cy="110" r="12" fill="#FFFFFF" stroke="#B45309" stroke-width="2.2"/>
+<text x="460" y="114" font-size="10" fill="#B45309" font-weight="700" text-anchor="middle">P3</text>
+<text x="442" y="114" font-size="11" fill="#B45309" font-weight="600" text-anchor="end">continues at the Incoming bucket ↓</text>
+</g>
+<g class="el j-p s-P3">
+<circle cx="45" cy="1045" r="12" fill="#FFFFFF" stroke="#B45309" stroke-width="2.2"/>
+<text x="45" y="1049" font-size="10" fill="#B45309" font-weight="700" text-anchor="middle">P3</text>
+</g>
+<g class="el j-b s-B3">
+<circle cx="1430" cy="268" r="12" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<text x="1430" y="272" font-size="10" fill="#334155" font-weight="700" text-anchor="middle">B3</text>
+<text x="1448" y="272" font-size="11" fill="#334155" font-weight="600" text-anchor="start">continues at the Photos bucket ↓</text>
+</g>
+<g class="el j-b s-B3">
+<circle cx="1490" cy="1045" r="12" fill="#FFFFFF" stroke="#334155" stroke-width="2.2"/>
+<text x="1490" y="1049" font-size="10" fill="#334155" font-weight="700" text-anchor="middle">B3</text>
 </g>
 <g class="el j-b s-B1 s-B2 s-B3 s-B4 s-B5">
 <rect x="30" y="1505" width="336" height="390" rx="10" fill="#FFFFFF" stroke="#334155" stroke-width="1.5"/>
@@ -659,10 +700,10 @@
 <text x="774" y="1663" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">GuardDuty scans the file; EventBridge sends</text>
 <text x="774" y="1678" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">every scan result to the photo processing queue</text>
 <text x="746" y="1699" font-size="11.5" fill="#B45309" font-weight="700" text-anchor="start">P5</text>
-<text x="774" y="1699" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">The Lambda reads the result. Not clean (threat,</text>
-<text x="774" y="1714" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">failed, unsupported)? It moves the file to</text>
-<text x="774" y="1729" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">quarantine. Clean: Rekognition checks, resize,</text>
-<text x="774" y="1744" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">remove GPS</text>
+<text x="774" y="1699" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">The Lambda checks the result is a clean scan of</text>
+<text x="774" y="1714" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">this exact object version. If not, it moves the</text>
+<text x="774" y="1729" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">file to quarantine. Clean: Rekognition checks,</text>
+<text x="774" y="1744" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">resize, remove GPS</text>
 <text x="746" y="1765" font-size="11.5" fill="#B45309" font-weight="700" text-anchor="start">P6</text>
 <text x="774" y="1765" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">Decision: approved? Yes: the cleaned photo goes</text>
 <text x="774" y="1780" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">to the photos bucket. No: held for a moderator</text>
@@ -683,10 +724,12 @@
 <text x="1097" y="1576" font-size="11.5" fill="#7C3AED" font-weight="700" text-anchor="start">D2</text>
 <text x="1125" y="1576" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">CodeBuild runs the tests and builds one image</text>
 <text x="1097" y="1597" font-size="11.5" fill="#7C3AED" font-weight="700" text-anchor="start">D3</text>
-<text x="1125" y="1597" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">The image is stored and scanned in ECR</text>
-<text x="1097" y="1618" font-size="11.5" fill="#7C3AED" font-weight="700" text-anchor="start">D4</text>
-<text x="1125" y="1618" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">ECS rolling deployment: new tasks pull the</text>
-<text x="1125" y="1633" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">image and pass health checks</text>
+<text x="1125" y="1597" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">The image is stored and scanned in ECR. ECR</text>
+<text x="1125" y="1612" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">only stores it; it deploys nothing</text>
+<text x="1097" y="1633" font-size="11.5" fill="#7C3AED" font-weight="700" text-anchor="start">D4</text>
+<text x="1125" y="1633" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">CodePipeline's deploy stage updates the ECS</text>
+<text x="1125" y="1648" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">services: new tasks in both AZs pull the image</text>
+<text x="1125" y="1663" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">and pass health checks</text>
 </g>
 <g class="el j-r s-R1 s-R2 s-R3 s-R4">
 <rect x="1434" y="1505" width="336" height="390" rx="10" fill="#FFFFFF" stroke="#0F766E" stroke-width="1.5"/>
@@ -694,8 +737,8 @@
 <text x="1448" y="1525" font-size="11.5" fill="#FFFFFF" font-weight="700" text-anchor="start">FAILURE AND RECOVERY</text>
 <text x="1448" y="1555" font-size="11.5" fill="#0F766E" font-weight="700" text-anchor="start">R1</text>
 <text x="1476" y="1555" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">RDS copies every change synchronously to the</text>
-<text x="1476" y="1570" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">standby in zone B; failover is automatic,</text>
-<text x="1476" y="1585" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">typically 1–2 min</text>
+<text x="1476" y="1570" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">standby in zone B; failover is automatic; its</text>
+<text x="1476" y="1585" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">duration varies</text>
 <text x="1448" y="1606" font-size="11.5" fill="#0F766E" font-weight="700" text-anchor="start">R2</text>
 <text x="1476" y="1606" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">Zone B runs its own app, workers, and NAT; ECS</text>
 <text x="1476" y="1621" font-size="11.5" fill="#0F172A" font-weight="400" text-anchor="start">replaces lost tasks</text>
