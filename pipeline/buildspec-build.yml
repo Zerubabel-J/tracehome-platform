@@ -1,0 +1,31 @@
+# CodeBuild project: tracehome-build (Build stage).
+# Created in the console (decision 81). Settings: managed image aws/codebuild/standard:7.0,
+# Linux x86_64, PRIVILEGED mode ON (it runs Docker), buildspec path pipeline/buildspec-build.yml.
+# Environment variables on the project (no secrets):
+#   ECR_REPOSITORY_URI   <account>.dkr.ecr.us-east-1.amazonaws.com/tracehome
+# Commands here use the project's IAM role, so they take no --profile.
+version: 0.2
+
+phases:
+  build:
+    on-failure: ABORT
+    commands:
+      # 1. Tests, against a real PostgreSQL 16. A failed test stops the pipeline here.
+      - pipeline/scripts/ci-test.sh
+      # 2. One image for the API, the worker, and the jobs, tagged with the commit (decision 35).
+      - IMAGE_TAG=$(echo "$CODEBUILD_RESOLVED_SOURCE_VERSION" | cut -c1-12)
+      - IMAGE_URI="$ECR_REPOSITORY_URI:$IMAGE_TAG"
+      - aws ecr get-login-password | docker login --username AWS --password-stdin "${ECR_REPOSITORY_URI%%/*}"
+      - docker build --target runtime -t "$IMAGE_URI" backend
+      - docker push "$IMAGE_URI"
+      # 3. Stop on CRITICAL vulnerabilities found by ECR's scan on push.
+      - pipeline/scripts/check-image-scan.sh "${ECR_REPOSITORY_URI##*/}" "$IMAGE_TAG"
+      # 4. Tell the next stages which image to use. "app" is the container name in every task
+      #    definition, so the same file deploys both the API and the worker services.
+      - printf '[{"name":"app","imageUri":"%s"}]' "$IMAGE_URI" > imagedefinitions.json
+      - printf '%s' "$IMAGE_URI" > image-uri.txt
+
+artifacts:
+  files:
+    - imagedefinitions.json
+    - image-uri.txt

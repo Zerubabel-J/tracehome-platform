@@ -1,0 +1,25 @@
+{
+  "Rules": [
+    {
+      "ID": "delete-unchecked-uploads-after-1-day",
+      "Filter": { "Prefix": "uploads/" },
+      "Status": "Enabled",
+      "Expiration": { "Days": 1 },
+      "NoncurrentVersionExpiration": { "NoncurrentDays": 1 }
+    },
+    {
+      "ID": "keep-held-photos-30-days",
+      "Filter": { "Prefix": "held/" },
+      "Status": "Enabled",
+      "Expiration": { "Days": 30 },
+      "NoncurrentVersionExpiration": { "NoncurrentDays": 1 }
+    },
+    {
+      "ID": "keep-quarantine-30-days",
+      "Filter": { "Prefix": "quarantine/" },
+      "Status": "Enabled",
+      "Expiration": { "Days": 30 },
+      "NoncurrentVersionExpiration": { "NoncurrentDays": 1 }
+    }
+  ]
+}

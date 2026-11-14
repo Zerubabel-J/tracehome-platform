@@ -1,0 +1,5 @@
+{
+  "VisibilityTimeout": "60",
+  "ReceiveMessageWaitTimeSeconds": "20",
+  "RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:${AWS_REGION}:${ACCOUNT_ID}:${UPLOAD_RESULTS_QUEUE}-dlq\",\"maxReceiveCount\":\"3\"}"
+}

@@ -19,6 +19,44 @@ it changes as we learn.
 | [REQUIREMENTS.md](REQUIREMENTS.md) | Problem, users, journeys, business rules, and quality requirements |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | How TraceHome is designed, and why |
 
+## Run it locally
+
+The first version runs on one laptop with Docker. It uses no AWS account; LocalStack stands in for
+S3 and SQS, and every name, phone number, and email in the data is made up.
+
+```bash
+docker compose up --build                       # then open http://localhost:8080
+docker compose --profile test run --rm tests    # the backend tests, against PostgreSQL 16
+```
+
+| Local service | Stands in for |
+|---|---|
+| `edge` (nginx) | CloudFront: `/api/*` to the API, `/photos/*` to the photos bucket, everything else to the website |
+| `api`, `worker` | The two ECS services, from one image |
+| `migrate` | The one-off ECS migration task |
+| `db` | RDS PostgreSQL 16 |
+| `localstack` | The incoming and photos buckets, and the upload results queue with its DLQ |
+
+**Try it:** sign in as a demo seeker, search, open a listing, and unlock the contact for one credit.
+Then sign in as that listing's advertiser to see the lead. To check a photo, upload it in the
+workspace, then play the part of GuardDuty and the Lambda function:
+
+```bash
+docker compose exec worker python scripts/simulate_check_result.py                # approve
+docker compose exec worker python scripts/simulate_check_result.py --outcome flagged --reason "Phone number"
+docker compose exec worker python scripts/simulate_check_result.py --malformed     # ends in the DLQ
+docker compose exec worker python scripts/simulate_check_result.py --show-queues
+```
+
+**Deploying to AWS:** [docs/deploy-ecs.md](docs/deploy-ecs.md) is the runbook (console and AWS
+CLI, decision 81). `pipeline/` holds the CodeBuild buildspecs, and `deploy/` holds the task
+definition, IAM, S3, and SQS templates; account values are filled in at deploy time from the
+git-ignored `deploy/env/dev.env`. `pipeline/scripts/ci-test.sh` runs the tests exactly as
+CodeBuild will.
+
+LocalStack keeps nothing between restarts, so uploaded photos are lost when it stops. The seed
+script restores the demo photos. `docker compose down -v` resets everything.
+
 ## The idea in one paragraph
 
 People looking for homes in Addis Ababa rely on scattered listings and brokers, and it's hard to
@@ -154,6 +192,7 @@ decision with a better argument or new evidence. Decided items move to the decis
 | 79 | 13 Nov | The two queues are named by their jobs: the photo processing queue (work waiting for the Lambda) and the upload results queue (decisions waiting to be recorded). CloudFront, ALB, and WAF logging is turned on to the logs bucket, with Glue tables, for Athena. The main request path is drawn thicker | Clear names; analytics that actually work; the core path is seen first | None expected |
 | 80 | 13 Nov | The Lambda function publishes only on a clean scan of the current object version (versioning on the incoming bucket). CodePipeline's deploy stage updates ECS; ECR only stores images. Long paths use numbered connectors. RDS failover is described as automatic, with a duration that varies | No stale scan can approve a replaced file; the deployment chain is complete; claims we can defend | None expected |
 | 81 | 13 Nov | No Terraform: infrastructure is created in the console and with the AWS CLI, and documented in the repository. The main diagram uses only full, unbroken lines (updates decision 65) | Less to learn and maintain for the lab build; connectors confused the team | We need a second environment, or must rebuild in another Region quickly |
+| 82 | 13 Nov | Identity for the first version is a demo sign-in: you pick a seeded, made-up user and the API signs a token that expires after 5 minutes. Permissions are read from the database on every request. Amazon Cognito is the target | No real users or personal data yet; it exercises roles and the 5-minute access rule without an identity service to learn and pay for | Real users are invited, or we need sign-up, phone confirmation, or password reset |
 
 ### Our edge over Telegram groups
 

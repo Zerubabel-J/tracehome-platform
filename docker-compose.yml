@@ -1,0 +1,142 @@
+# TraceHome on one laptop. Each service stands in for a part of the AWS design:
+#
+#   edge        nginx      -> CloudFront: /api/* to the API, /photos/* to the photos bucket,
+#                             everything else to the website files (decision 72)
+#   api         our image  -> the ECS API service
+#   worker      our image  -> the ECS worker service
+#   migrate     our image  -> the one-off ECS migration task
+#   seed        our image  -> made-up data, local only
+#   db          postgres   -> RDS PostgreSQL 16
+#   localstack  localstack -> S3 (incoming and photos buckets) and SQS (upload results + DLQ)
+#
+# Run:   docker compose up --build        then open http://localhost:8080
+# Tests: docker compose --profile test run --rm tests
+#
+# Nothing here is a real secret. The fallback values only work locally; put your own in .env
+# (copied from .env.example, never committed) if you want different ones.
+
+x-backend-env: &backend-env
+  APP_ENV: local
+  DB_HOST: db
+  DB_PORT: "5432"
+  DB_NAME: tracehome
+  DB_USER: tracehome
+  DB_PASSWORD: ${POSTGRES_PASSWORD:-local-dev-only}
+  TOKEN_SIGNING_KEY: ${TOKEN_SIGNING_KEY:-local-development-only-signing-key-not-a-secret}
+  AWS_REGION: us-east-1
+  # Every AWS call goes to LocalStack with dummy keys. This matters: without it, boto3 would
+  # quietly use this laptop's default AWS profile, which points to a different, real account.
+  AWS_ENDPOINT_URL: http://localstack:4566
+  AWS_ACCESS_KEY_ID: test
+  AWS_SECRET_ACCESS_KEY: test
+  S3_PUBLIC_ENDPOINT_URL: http://localhost:4566
+  INCOMING_BUCKET: tracehome-incoming-local
+  PHOTOS_BUCKET: tracehome-photos-local
+  UPLOAD_RESULTS_QUEUE_NAME: upload-results
+
+services:
+  db:
+    image: public.ecr.aws/docker/library/postgres:16-alpine
+    environment:
+      POSTGRES_DB: tracehome
+      POSTGRES_USER: tracehome
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-dev-only}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tracehome -d tracehome"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped
+
+  localstack:
+    image: localstack/localstack:4.4
+    environment:
+      SERVICES: s3,sqs
+      AWS_DEFAULT_REGION: us-east-1
+    ports:
+      - "127.0.0.1:4566:4566" # the browser uploads here with the presigned POST
+    volumes:
+      - ./localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh:ro
+    healthcheck:
+      # Healthy only after init-aws.sh has created the queue.
+      test: ["CMD", "awslocal", "sqs", "get-queue-url", "--queue-name", "upload-results"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+    restart: unless-stopped
+
+  migrate:
+    build: ./backend
+    image: tracehome-backend:local
+    command: ["alembic", "upgrade", "head"]
+    environment: *backend-env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  seed:
+    image: tracehome-backend:local
+    command: ["python", "-m", "seed.seed"]
+    environment: *backend-env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      localstack:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    image: tracehome-backend:local
+    environment: *backend-env
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  worker:
+    image: tracehome-backend:local
+    command: ["python", "-m", "tracehome.worker"]
+    environment: *backend-env
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-m", "tracehome.worker.healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    restart: unless-stopped
+
+  edge:
+    build: ./frontend
+    image: tracehome-edge:local
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  tests:
+    build:
+      context: ./backend
+      target: test
+    image: tracehome-backend:test
+    profiles: ["test"]
+    environment:
+      <<: *backend-env
+      TEST_DB_NAME: tracehome_test
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

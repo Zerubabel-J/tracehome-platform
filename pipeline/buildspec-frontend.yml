@@ -1,0 +1,23 @@
+# CodeBuild project: tracehome-frontend (last stage, after the API and worker are deployed, so
+# the new website never calls an API version that doesn't exist yet).
+# Environment variables on the project (no secrets):
+#   WEB_BUCKET        the private web bucket behind CloudFront (decision 72)
+#   DISTRIBUTION_ID   the CloudFront distribution
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22
+  build:
+    on-failure: ABORT
+    commands:
+      - cd frontend
+      - npm ci
+      - npm run build
+      # Hashed files first, cached for a year: a new build has new names, so nothing goes stale.
+      # Old hashed files are kept, so a visitor with the previous page open still works.
+      - aws s3 sync dist/assets "s3://$WEB_BUCKET/assets" --cache-control "public, max-age=31536000, immutable"
+      # index.html last, never cached, so visitors pick up the new build at once.
+      - aws s3 cp dist/index.html "s3://$WEB_BUCKET/index.html" --cache-control "no-cache"
+      - aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" --paths /index.html
