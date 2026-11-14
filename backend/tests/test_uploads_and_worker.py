@@ -57,6 +57,16 @@ def test_an_advertiser_cannot_upload_to_another_advertisers_listing(client, sess
     assert request_upload(client, me, their_listing.id).status_code == 404
 
 
+def test_a_removed_listing_cannot_get_new_photos(client, session):
+    advertiser = make_advertiser(session)
+    listing = make_listing(session, advertiser, status="removed")
+    user = make_advertiser_user(session, advertiser)
+
+    response = request_upload(client, user, listing.id)
+    assert response.status_code == 409
+    assert response.json()["detail"]["code"] == "listing_removed"
+
+
 def test_unsupported_or_oversized_files_are_refused_before_signing(client, session):
     advertiser = make_advertiser(session)
     listing = make_listing(session, advertiser)

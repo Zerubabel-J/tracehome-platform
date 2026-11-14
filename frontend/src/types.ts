@@ -35,6 +35,8 @@ export type DemoUser = {
   advertiser_name: string | null;
 };
 
+export type DemoUserOption = DemoUser & { hint: string };
+
 export type Me = DemoUser & { balance: number | null };
 
 export type UnlockResult = {

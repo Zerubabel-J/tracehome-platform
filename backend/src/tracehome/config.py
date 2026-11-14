@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     db_name: str = "tracehome"
     db_user: str = "tracehome"
     db_password: str = ""
+    # RDS for PostgreSQL 15+ refuses unencrypted connections (rds.force_ssl=1), so on AWS this is
+    # "require". Locally the container has no certificate, so "prefer" falls back to plain TCP.
+    db_sslmode: str = "prefer"
+    # Connections per container. Keep (API tasks + worker tasks + jobs) x (pool + overflow)
+    # below the RDS instance's max_connections (about 80 on db.t4g.micro).
+    db_pool_size: int = 5
 
     # Demo sign-in (decision 82). Tokens expire after 5 minutes, which matches
     # "a removed agent loses access within 5 minutes" (requirements, invariant 15).
@@ -51,6 +57,7 @@ class Settings(BaseSettings):
             host=self.db_host,
             port=self.db_port,
             database=self.db_name,
+            query={"sslmode": self.db_sslmode},
         )
 
     def check(self) -> None:

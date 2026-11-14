@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router";
 import { api } from "../api";
 import { useAuth } from "../auth";
-import type { DemoUser } from "../types";
+import type { DemoUserOption } from "../types";
 
 export function Layout() {
   const { me, signIn, signOut } = useAuth();
-  const [users, setUsers] = useState<DemoUser[]>([]);
+  const [users, setUsers] = useState<DemoUserOption[]>([]);
 
   useEffect(() => {
     api.demoUsers().then(setUsers).catch(() => setUsers([]));
@@ -27,7 +27,12 @@ export function Layout() {
             <>
               <span>
                 {me.display_name}
-                {me.balance !== null && <strong className="balance"> · {me.balance} credits</strong>}
+                {me.balance !== null && (
+                  <strong className="balance">
+                    {" "}
+                    · {me.balance} {me.balance === 1 ? "credit" : "credits"}
+                  </strong>
+                )}
               </span>
               <button className="link" onClick={signOut}>
                 Sign out
@@ -42,7 +47,7 @@ export function Layout() {
                 </option>
                 {users.map((u) => (
                   <option key={u.id} value={u.id}>
-                    {u.display_name}
+                    {u.display_name} ({u.hint})
                   </option>
                 ))}
               </select>

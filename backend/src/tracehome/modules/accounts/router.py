@@ -19,6 +19,10 @@ class DemoUser(BaseModel):
     advertiser_name: str | None
 
 
+class DemoUserOption(DemoUser):
+    hint: str  # shown in the sign-in menu, worked out live: "seeker, 2 credits"
+
+
 class Me(DemoUser):
     balance: int | None  # seekers only
 
@@ -49,7 +53,7 @@ def _me(session: Session, user: User) -> Me:
     )
 
 
-@router.get("/auth/demo-users", response_model=list[DemoUser])
+@router.get("/auth/demo-users", response_model=list[DemoUserOption])
 def demo_users(session: Session = Depends(get_session)):
     """The made-up people you can sign in as (decision 82)."""
     _require_demo_enabled()
@@ -59,10 +63,23 @@ def demo_users(session: Session = Depends(get_session)):
         .where(User.is_active)
         .order_by(User.role.desc(), User.id)
     ).all()
-    return [
-        DemoUser(id=u.id, display_name=u.display_name, role=u.role, advertiser_name=name)
-        for u, name in rows
-    ]
+    options = []
+    for user, advertiser_name in rows:
+        if user.role == "seeker":
+            balance = usable_balance(session, user.id)
+            hint = f"seeker, {balance} credit{'' if balance == 1 else 's'}"
+        else:
+            hint = f"advertiser, {advertiser_name}"
+        options.append(
+            DemoUserOption(
+                id=user.id,
+                display_name=user.display_name,
+                role=user.role,
+                advertiser_name=advertiser_name,
+                hint=hint,
+            )
+        )
+    return options
 
 
 @router.post("/auth/demo-sign-in", response_model=SignedIn)

@@ -64,6 +64,11 @@ def request_photo_upload(
     )
     if listing is None or listing.advertiser_id != user.advertiser_id:
         raise _not_found()
+    # Rule: a removed listing can't get new photos.
+    if listing.status == "removed":
+        raise HTTPException(
+            409, {"code": "listing_removed", "message": "This listing was removed."}
+        )
 
     # Rule: a listing has at most this many photos that aren't rejected.
     count = session.scalar(

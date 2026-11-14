@@ -18,11 +18,12 @@ _engine: Engine | None = None
 def get_engine() -> Engine:
     global _engine
     if _engine is None:
+        settings = get_settings()
         _engine = create_engine(
-            get_settings().database_url,
+            settings.database_url,
             pool_pre_ping=True,  # survives an RDS failover or restart
-            pool_size=10,
-            max_overflow=10,
+            pool_size=settings.db_pool_size,
+            max_overflow=settings.db_pool_size,
         )
     return _engine
 

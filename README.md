@@ -48,6 +48,12 @@ docker compose exec worker python scripts/simulate_check_result.py --malformed  
 docker compose exec worker python scripts/simulate_check_result.py --show-queues
 ```
 
+**Deploying to AWS:** [docs/deploy-ecs.md](docs/deploy-ecs.md) is the runbook (console and AWS
+CLI, decision 81). `pipeline/` holds the CodeBuild buildspecs, and `deploy/` holds the task
+definition, IAM, S3, and SQS templates; account values are filled in at deploy time from the
+git-ignored `deploy/env/dev.env`. `pipeline/scripts/ci-test.sh` runs the tests exactly as
+CodeBuild will.
+
 LocalStack keeps nothing between restarts, so uploaded photos are lost when it stops. The seed
 script restores the demo photos. `docker compose down -v` resets everything.
 

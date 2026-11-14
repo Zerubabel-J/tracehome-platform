@@ -1,0 +1,22 @@
+# CodeBuild project: tracehome-migrate (Migrate stage, between Build and Deploy).
+# Same image settings as tracehome-build; privileged mode not needed.
+# Input artifacts: SourceArtifact (primary, for these scripts) and BuildArtifact (secondary,
+# holds image-uri.txt). Environment variables on the project (no secrets):
+#   CLUSTER              tracehome-dev
+#   APP_SUBNETS          subnet-...,subnet-...   (private app subnets)
+#   APP_SECURITY_GROUP   sg-...                  (the app security group; RDS allows it)
+#
+# Why a separate stage: the migration must finish before new tasks start. If it fails, the
+# pipeline stops and the old version keeps running. PostgreSQL runs DDL in a transaction, so a
+# failed migration leaves nothing half done. Migrations must stay backward-compatible (expand
+# first, contract later), because a rollback of ECS never rolls back the database.
+version: 0.2
+
+phases:
+  build:
+    on-failure: ABORT
+    commands:
+      - IMAGE_URI=$(cat "$CODEBUILD_SRC_DIR_BuildArtifact/image-uri.txt")
+      - TASK_DEFINITION=$(pipeline/scripts/new-jobs-revision.sh "$IMAGE_URI")
+      - echo "Migrating with $TASK_DEFINITION"
+      - TASK_DEFINITION="$TASK_DEFINITION" pipeline/scripts/run-ecs-job.sh '["alembic","upgrade","head"]'

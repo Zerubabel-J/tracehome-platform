@@ -79,10 +79,13 @@ def _listing(rng: random.Random, advertiser_id: int) -> Listing:
         price = rng.randrange(2_500_000, 60_000_000, 50_000)  # ETB
     area = rng.randint(30, 60) if property_type == "studio" else rng.randint(55, 450)
     features = rng.sample(FEATURES, 3)
-    rooms = "Studio" if bedrooms == 0 else f"{bedrooms}-bedroom"
+    if property_type == "studio":
+        title = f"Studio in {neighborhood}"
+    else:
+        title = f"{bedrooms}-bedroom {property_type} in {neighborhood}"
     return Listing(
         advertiser_id=advertiser_id,
-        title=f"{rooms} {property_type} in {neighborhood}",
+        title=title,
         description=(
             f"Made-up demo listing. A {area} m² {property_type} in {neighborhood}, {sub_city}, "
             f"{'for rent' if purpose == 'rent' else 'for sale'}: {', '.join(features)}."
@@ -139,7 +142,7 @@ def _seed_database(session, rng: random.Random, listing_count: int) -> None:
         session.add(AdvertiserContact(advertiser_id=advertiser.id, phone=phone, email=email))
         session.add(
             User(
-                display_name=f"{name.split(': ')[1]} (advertiser)",
+                display_name=name.split(": ")[1],
                 role="advertiser",
                 advertiser_id=advertiser.id,
             )
@@ -148,14 +151,15 @@ def _seed_database(session, rng: random.Random, listing_count: int) -> None:
 
     now = datetime.now(UTC)
     seekers = [
-        # (name, [(kind, amount, expires_at, created_at)])
-        ("Hana (seeker, 3 bonus credits)", [("bonus", 3, now + timedelta(days=90), now)]),
+        # (name, [(kind, amount, expires_at, created_at)]). Hana: 3 bonus. Dawit: 1 bonus + 2
+        # purchased. Selam: her bonus credits expired yesterday, so she can't unlock anything.
+        ("Hana", [("bonus", 3, now + timedelta(days=90), now)]),
         (
-            "Dawit (seeker, 1 bonus + 2 purchased)",
+            "Dawit",
             [("bonus", 1, now + timedelta(days=30), now), ("purchased", 2, None, now)],
         ),
         (
-            "Selam (seeker, bonus credits expired)",
+            "Selam",
             [("bonus", 2, now - timedelta(days=1), now - timedelta(days=91))],
         ),
     ]

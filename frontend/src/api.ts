@@ -2,7 +2,7 @@
 // the same build works locally and behind CloudFront, with no CORS for API calls.
 import type {
   AdvertiserListing,
-  DemoUser,
+  DemoUserOption,
   Lead,
   ListingDetail,
   Me,
@@ -70,7 +70,7 @@ export function signOut() {
 export const isSignedIn = () => sessionStorage.getItem(USER_KEY) !== null;
 
 export const api = {
-  demoUsers: () => request<DemoUser[]>("/api/auth/demo-users"),
+  demoUsers: () => request<DemoUserOption[]>("/api/auth/demo-users"),
   me: () => request<Me>("/api/me"),
   search: (params: URLSearchParams) => request<SearchPage>(`/api/listings?${params}`),
   listing: (id: number) => request<ListingDetail>(`/api/listings/${id}`),

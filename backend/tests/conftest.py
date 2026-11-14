@@ -10,6 +10,7 @@ from pathlib import Path
 # Point everything at the test database *before* the application reads its settings.
 TEST_DB = os.environ.setdefault("TEST_DB_NAME", "tracehome_test")
 os.environ["DB_NAME"] = TEST_DB
+os.environ["DB_POOL_SIZE"] = "10"  # the parallel tests hold 10 connections at once
 os.environ.setdefault("AWS_ACCESS_KEY_ID", "test")  # presigning needs keys, never real ones
 os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "test")
 os.environ.setdefault("S3_PUBLIC_ENDPOINT_URL", "http://localhost:4566")

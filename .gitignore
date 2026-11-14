@@ -28,6 +28,8 @@ __pycache__/
 imagedefinitions.json
 localstack-data/
 aws-inventory/
+deploy/env/dev.env
+deploy/out/
 
 # Editors and system files
 .DS_Store

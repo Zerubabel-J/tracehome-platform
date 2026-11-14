@@ -131,3 +131,20 @@ def test_api_responses_are_never_cached_by_default(client):
     response = client.get("/api/health")
     assert response.json() == {"status": "ok"}
     assert response.headers["cache-control"] == "no-store"
+
+
+def test_demo_user_menu_shows_the_live_balance(client, session):
+    seeker = make_seeker(session, lots=[("bonus", 1, 30), ("bonus", 4, -1)])  # 4 expired
+    advertiser = make_advertiser(session, name="Demo Agency: Menu Homes")
+    make_advertiser_user(session, advertiser)
+
+    options = {u["id"]: u["hint"] for u in client.get("/api/auth/demo-users").json()}
+
+    assert options[seeker.id] == "seeker, 1 credit"
+    assert "advertiser, Demo Agency: Menu Homes" in options.values()
+
+
+def test_database_url_carries_the_ssl_mode():
+    from tracehome.config import Settings
+
+    assert Settings(db_sslmode="require").database_url.query["sslmode"] == "require"
