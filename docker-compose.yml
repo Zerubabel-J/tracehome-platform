@@ -48,6 +48,7 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+    restart: unless-stopped
 
   localstack:
     image: localstack/localstack:4.4
@@ -64,6 +65,7 @@ services:
       interval: 3s
       timeout: 5s
       retries: 40
+    restart: unless-stopped
 
   migrate:
     build: ./backend
