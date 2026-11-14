@@ -19,8 +19,15 @@ dist/
 build/
 .expo/
 __pycache__/
+*.egg-info/
 .venv/
 .pytest_cache/
+
+# AWS build artifacts and local AWS data (never commit outputs that may hold account IDs)
+*.zip
+imagedefinitions.json
+localstack-data/
+aws-inventory/
 
 # Editors and system files
 .DS_Store
