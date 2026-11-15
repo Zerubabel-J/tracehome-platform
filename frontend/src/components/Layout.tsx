@@ -39,8 +39,8 @@ export function Layout() {
               </button>
             </>
           ) : (
-            <label>
-              Demo sign-in{" "}
+            <label className="signin">
+              Demo sign-in
               <select defaultValue="" onChange={(e) => e.target.value && signIn(Number(e.target.value))}>
                 <option value="" disabled>
                   Choose a made-up user…

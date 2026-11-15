@@ -8,6 +8,8 @@
   --danger: #b42318;
   --notice: #eef6f6;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Lets the browser draw form controls and dropdown lists in the matching theme */
+  color-scheme: light dark;
   color: var(--text);
   background: var(--bg);
 }
@@ -99,7 +101,22 @@ select {
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--surface);
+  color: inherit;
   min-width: 0;
+}
+
+/* The demo sign-in is the first thing a visitor needs, so make it stand out */
+.signin {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.signin select {
+  border: 2px solid var(--accent);
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .filters {
