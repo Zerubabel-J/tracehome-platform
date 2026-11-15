@@ -117,6 +117,12 @@ aws iam put-role-policy --profile tracehome --role-name tracehome-dev-jobs-task 
   --policy-name app --policy-document file://deploy/out/iam/jobs-task.json
 ```
 
+**Already deployed before the moderator console?** The API now also reads `held/*` (to show a
+flagged photo to a moderator) and writes `photos/*` (to publish an approved one), and the seed job
+writes the demo flagged photos to `held/*`. Run `deploy/scripts/render.sh` again, then re-run the
+`api-task` and `jobs-task` `put-role-policy` commands above (`put-role-policy` replaces the
+policy). Register the task definitions again too: the jobs task now gets `INCOMING_BUCKET`.
+
 **Execution role versus task role:** ECS itself uses the *execution* role before the container
 starts (pull the image, fetch secrets, create the log stream). The application uses the *task*
 role while it runs (sign uploads, read the queue). The API's presigned upload links are signed

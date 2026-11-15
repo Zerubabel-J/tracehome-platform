@@ -1,63 +1,83 @@
-import { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router";
-import { api } from "../api";
+import { NavLink, Outlet, useNavigate } from "react-router";
 import { useAuth } from "../auth";
-import type { DemoUserOption } from "../types";
+import { personaOf } from "../roles";
+import { Avatar, RoleBadge } from "./ui";
+
+export function Logo() {
+  return (
+    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden>
+      <rect width="32" height="32" rx="8" fill="var(--brand)" />
+      <path d="M8 16 L16 9 L24 16 V24 H19 V19 H13 V24 H8 Z" fill="#fff" />
+    </svg>
+  );
+}
 
 export function Layout() {
-  const { me, signIn, signOut } = useAuth();
-  const [users, setUsers] = useState<DemoUserOption[]>([]);
-
-  useEffect(() => {
-    api.demoUsers().then(setUsers).catch(() => setUsers([]));
-  }, []);
+  const { me, signOut } = useAuth();
+  const navigate = useNavigate();
+  const persona = me ? personaOf(me) : null;
 
   return (
-    <>
+    <div className="shell">
+      <div className="demo-strip">Demo for Group 9 · every person, listing and phone number here is made up</div>
       <header className="topbar">
-        <Link to="/" className="brand">
-          TraceHome <span className="tag">demo · made-up data</span>
-        </Link>
-        <nav>
-          <Link to="/">Search</Link>
-          {me?.role === "advertiser" && <Link to="/advertiser">My workspace</Link>}
-        </nav>
-        <div className="account">
-          {me ? (
-            <>
-              <span>
-                {me.display_name}
+        <div className="topbar-inner">
+          <NavLink to="/" className="brand">
+            <Logo />
+            <span>TraceHome</span>
+          </NavLink>
+
+          <nav className="nav">
+            <NavLink to="/" end>
+              Browse homes
+            </NavLink>
+            {me?.role === "seeker" && <NavLink to="/contacts">My contacts</NavLink>}
+            {me?.role === "advertiser" && <NavLink to="/workspace">Workspace</NavLink>}
+            {me?.role === "moderator" && <NavLink to="/moderation">Moderation</NavLink>}
+            <NavLink to="/demo">Demo users</NavLink>
+          </nav>
+
+          <div className="account">
+            {me && persona ? (
+              <>
                 {me.balance !== null && (
-                  <strong className="balance">
-                    {" "}
-                    · {me.balance} {me.balance === 1 ? "credit" : "credits"}
-                  </strong>
+                  <span className="credits" title="Usable credits">
+                    {me.balance} {me.balance === 1 ? "credit" : "credits"}
+                  </span>
                 )}
-              </span>
-              <button className="link" onClick={signOut}>
-                Sign out
-              </button>
-            </>
-          ) : (
-            <label className="signin">
-              Demo sign-in
-              <select defaultValue="" onChange={(e) => e.target.value && signIn(Number(e.target.value))}>
-                <option value="" disabled>
-                  Choose a made-up user…
-                </option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.display_name} ({u.hint})
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+                <div className="me">
+                  <Avatar name={me.display_name} persona={persona} size={34} />
+                  <div className="me-text">
+                    <strong>{me.display_name}</strong>
+                    <RoleBadge persona={persona} />
+                  </div>
+                </div>
+                <button
+                  className="btn ghost small"
+                  onClick={() => {
+                    signOut();
+                    navigate("/demo");
+                  }}
+                >
+                  Switch user
+                </button>
+              </>
+            ) : (
+              <NavLink to="/demo" className="btn">
+                Sign in as a demo user
+              </NavLink>
+            )}
+          </div>
         </div>
       </header>
-      <main>
+
+      <main className="page">
         <Outlet />
       </main>
-    </>
+
+      <footer className="footer">
+        TraceHome · a property platform for Addis Ababa · Evangadi AWS course, Group 9 · made-up data only
+      </footer>
+    </div>
   );
 }

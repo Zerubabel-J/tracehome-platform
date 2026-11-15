@@ -37,9 +37,16 @@ docker compose --profile test run --rm tests    # the backend tests, against Pos
 | `db` | RDS PostgreSQL 16 |
 | `localstack` | The incoming and photos buckets, and the upload results queue with its DLQ |
 
-**Try it:** sign in as a demo seeker, search, open a listing, and unlock the contact for one credit.
-Then sign in as that listing's advertiser to see the lead. To check a photo, upload it in the
-workspace, then play the part of GuardDuty and the Lambda function:
+**Try it:** open **Demo users** (`/demo`). It lists every made-up person with one-click sign-in:
+
+| Who | Where they land | What to show |
+|---|---|---|
+| Seekers (Hana, Dawit, Selam) | Browse homes, My contacts | Unlock a contact for 1 credit; Selam's credits have expired |
+| Agencies, an agent (Meron at Acacia Homes), a broker, owners | Workspace | The lead appears the moment a seeker unlocks; photo upload and check status |
+| Moderator (Sara) | Moderation | Flagged photos, shown through a 5-minute signed link; approve publishes, reject tells the advertiser why |
+
+Two flagged photos are seeded, so the moderation queue is never empty in a demo. To flag your own
+upload, upload it in the workspace, then play the part of GuardDuty and the Lambda function:
 
 ```bash
 docker compose exec worker python scripts/simulate_check_result.py                # approve

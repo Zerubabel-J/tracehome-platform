@@ -20,6 +20,7 @@
         { "name": "DB_NAME", "value": "tracehome" },
         { "name": "DB_SSLMODE", "value": "require" },
         { "name": "DB_POOL_SIZE", "value": "2" },
+        { "name": "INCOMING_BUCKET", "value": "${INCOMING_BUCKET}" },
         { "name": "PHOTOS_BUCKET", "value": "${PHOTOS_BUCKET}" }
       ],
       "secrets": [

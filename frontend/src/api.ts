@@ -6,6 +6,8 @@ import type {
   Lead,
   ListingDetail,
   Me,
+  ModerationSummary,
+  ReviewCase,
   SearchPage,
   UnlockResult,
   UnlockedListing,
@@ -88,6 +90,13 @@ export const api = {
     request<UploadTicket>(`/api/advertiser/listings/${listingId}/photo-uploads`, {
       method: "POST",
       body: JSON.stringify({ content_type: file.type, size_bytes: file.size }),
+    }),
+  moderationSummary: () => request<ModerationSummary>("/api/moderation/summary"),
+  reviewCases: (status: "open" | "closed") => request<ReviewCase[]>(`/api/moderation/cases?status=${status}`),
+  decide: (caseId: number, decision: "approved" | "rejected", note: string | null) =>
+    request<ReviewCase>(`/api/moderation/cases/${caseId}/decision`, {
+      method: "POST",
+      body: JSON.stringify({ decision, note }),
     }),
 };
 

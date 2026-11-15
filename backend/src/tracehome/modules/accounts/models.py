@@ -30,7 +30,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     display_name: Mapped[str]
-    role: Mapped[str]  # seeker | advertiser
+    role: Mapped[str]  # seeker | advertiser | moderator
     advertiser_id: Mapped[int | None] = mapped_column(ForeignKey("advertisers.id"))
     is_active: Mapped[bool] = mapped_column(server_default="true")
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())

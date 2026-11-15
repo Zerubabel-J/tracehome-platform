@@ -67,3 +67,10 @@ def require_advertiser(user: User = Depends(current_user)) -> User:
     if user.role != "advertiser" or user.advertiser_id is None:
         raise HTTPException(403, {"code": "forbidden", "message": "Only advertisers can do this."})
     return user
+
+
+def require_moderator(user: User = Depends(current_user)) -> User:
+    # Rule: only TraceHome moderators may see flagged photos or decide review cases.
+    if user.role != "moderator":
+        raise HTTPException(403, {"code": "forbidden", "message": "Only moderators can do this."})
+    return user

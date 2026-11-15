@@ -141,7 +141,7 @@ def test_demo_user_menu_shows_the_live_balance(client, session):
     options = {u["id"]: u["hint"] for u in client.get("/api/auth/demo-users").json()}
 
     assert options[seeker.id] == "seeker, 1 credit"
-    assert "advertiser, Demo Agency: Menu Homes" in options.values()
+    assert "agency, Demo Agency: Menu Homes" in options.values()
 
 
 def test_database_url_carries_the_ssl_mode():

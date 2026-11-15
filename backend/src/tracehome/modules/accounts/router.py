@@ -15,8 +15,9 @@ router = APIRouter(prefix="/api", tags=["accounts"])
 class DemoUser(BaseModel):
     id: int
     display_name: str
-    role: str
+    role: str  # seeker | advertiser | moderator
     advertiser_name: str | None
+    advertiser_kind: str | None  # owner | broker | agency
 
 
 class DemoUserOption(DemoUser):
@@ -49,6 +50,7 @@ def _me(session: Session, user: User) -> Me:
         display_name=user.display_name,
         role=user.role,
         advertiser_name=advertiser.name if advertiser else None,
+        advertiser_kind=advertiser.kind if advertiser else None,
         balance=usable_balance(session, user.id) if user.role == "seeker" else None,
     )
 
@@ -58,24 +60,27 @@ def demo_users(session: Session = Depends(get_session)):
     """The made-up people you can sign in as (decision 82)."""
     _require_demo_enabled()
     rows = session.execute(
-        select(User, Advertiser.name)
+        select(User, Advertiser)
         .outerjoin(Advertiser, Advertiser.id == User.advertiser_id)
         .where(User.is_active)
         .order_by(User.role.desc(), User.id)
     ).all()
     options = []
-    for user, advertiser_name in rows:
+    for user, advertiser in rows:
         if user.role == "seeker":
             balance = usable_balance(session, user.id)
             hint = f"seeker, {balance} credit{'' if balance == 1 else 's'}"
+        elif user.role == "moderator":
+            hint = "moderator, TraceHome staff"
         else:
-            hint = f"advertiser, {advertiser_name}"
+            hint = f"{advertiser.kind}, {advertiser.name}"
         options.append(
             DemoUserOption(
                 id=user.id,
                 display_name=user.display_name,
                 role=user.role,
-                advertiser_name=advertiser_name,
+                advertiser_name=advertiser.name if advertiser else None,
+                advertiser_kind=advertiser.kind if advertiser else None,
                 hint=hint,
             )
         )

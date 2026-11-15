@@ -28,11 +28,15 @@ export type SearchPage = {
   page_size: number;
 };
 
+export type Role = "seeker" | "advertiser" | "moderator";
+export type AdvertiserKind = "owner" | "broker" | "agency";
+
 export type DemoUser = {
   id: number;
   display_name: string;
-  role: "seeker" | "advertiser";
+  role: Role;
   advertiser_name: string | null;
+  advertiser_kind: AdvertiserKind | null;
 };
 
 export type DemoUserOption = DemoUser & { hint: string };
@@ -81,3 +85,22 @@ export type UploadTicket = {
   upload: { url: string; fields: Record<string, string> };
   expires_in: number;
 };
+
+export type ReviewCase = {
+  id: number;
+  status: "open" | "closed";
+  reason: string;
+  created_at: string;
+  photo_id: number;
+  listing_id: number;
+  listing_title: string;
+  advertiser_name: string;
+  advertiser_kind: AdvertiserKind;
+  preview_url: string | null;
+  decision: "approved" | "rejected" | null;
+  decided_by_name: string | null;
+  decided_at: string | null;
+  note: string | null;
+};
+
+export type ModerationSummary = { open: number; approved: number; rejected: number };
