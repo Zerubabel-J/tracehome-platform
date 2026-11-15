@@ -8,6 +8,7 @@ from tracehome.config import get_settings
 from tracehome.modules.accounts.router import router as accounts_router
 from tracehome.modules.credits.router import router as credits_router
 from tracehome.modules.listings.router import router as listings_router
+from tracehome.modules.review_cases.router import router as moderation_router
 from tracehome.modules.uploads.router import router as uploads_router
 
 get_settings()  # fail fast on bad configuration
@@ -23,6 +24,7 @@ app.include_router(accounts_router)
 app.include_router(listings_router)
 app.include_router(credits_router)
 app.include_router(uploads_router)
+app.include_router(moderation_router)
 
 
 @app.middleware("http")

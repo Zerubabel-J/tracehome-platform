@@ -15,5 +15,10 @@ class ReviewCase(Base):
     kind: Mapped[str]
     photo_id: Mapped[int] = mapped_column(ForeignKey("photos.id"))
     reason: Mapped[str]
-    status: Mapped[str] = mapped_column(server_default="open")
+    status: Mapped[str] = mapped_column(server_default="open")  # open | closed
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    # The decision record, filled in when a moderator closes the case (migration 0002).
+    decision: Mapped[str | None]  # approved | rejected
+    decided_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    decided_at: Mapped[datetime | None]
+    note: Mapped[str | None]

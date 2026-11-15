@@ -4,7 +4,7 @@ import type { Me } from "./types";
 
 type AuthState = {
   me: Me | null;
-  signIn: (userId: number) => Promise<void>;
+  signIn: (userId: number) => Promise<Me>;
   signOut: () => void;
   refresh: () => Promise<void>;
 };
@@ -31,7 +31,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthState = {
     me,
     refresh,
-    signIn: async (userId) => setMe(await apiSignIn(userId)),
+    signIn: async (userId) => {
+      const user = await apiSignIn(userId);
+      setMe(user);
+      return user;
+    },
     signOut: () => {
       apiSignOut();
       setMe(null);

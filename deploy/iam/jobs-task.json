@@ -6,6 +6,12 @@
       "Effect": "Allow",
       "Action": "s3:PutObject",
       "Resource": "arn:aws:s3:::${PHOTOS_BUCKET}/photos/*"
+    },
+    {
+      "Sid": "SeedFlaggedDemoPhotosIntoHeld",
+      "Effect": "Allow",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::${INCOMING_BUCKET}/held/*"
     }
   ]
 }

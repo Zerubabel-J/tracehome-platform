@@ -40,3 +40,31 @@ def presign_photo_upload(object_key: str, content_type: str) -> dict:
         ],
         ExpiresIn=settings.upload_url_ttl_seconds,
     )
+
+
+def held_key(object_key: str) -> str:
+    """Where the upload checks park a flagged photo: uploads/<listing>/<file> -> held/... (decision 75)."""
+    return "held/" + object_key.removeprefix("uploads/")
+
+
+def presign_held_photo_view(object_key: str) -> str:
+    """A 5-minute link so a moderator's browser can show one flagged photo. The bucket stays
+    private; the API checks the moderator's permission before signing (ARCHITECTURE.md)."""
+    settings = get_settings()
+    return _signing_client().generate_presigned_url(
+        "get_object",
+        Params={"Bucket": settings.incoming_bucket, "Key": held_key(object_key)},
+        ExpiresIn=300,
+    )
+
+
+def publish_held_photo(object_key: str, public_key: str) -> None:
+    """A moderator approved a flagged photo: copy it from held/ to the public photos bucket.
+    Copying the same file twice gives the same result, so a retry is safe."""
+    settings = get_settings()
+    s3 = boto3.client("s3", region_name=settings.aws_region)
+    s3.copy_object(
+        Bucket=settings.photos_bucket,
+        Key=public_key,
+        CopySource={"Bucket": settings.incoming_bucket, "Key": held_key(object_key)},
+    )

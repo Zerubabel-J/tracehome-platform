@@ -22,6 +22,7 @@ from tracehome.models import (
     LedgerEntry,
     Listing,
     Photo,
+    ReviewCase,
     User,
 )
 
@@ -46,6 +47,25 @@ ADVERTISERS = [
     ("Demo Broker: Tewodros B.", "broker", "+251 000 000 103", "tewodros@example.com"),
     ("Demo Owner: Almaz K.", "owner", "+251 000 000 104", "almaz@example.com"),
     ("Demo Owner: Yonas T.", "owner", "+251 000 000 105", "yonas@example.com"),
+]
+
+# An agency can have several people signing in. They share the agency's listings and leads.
+AGENTS = [("Meron", "Demo Agency: Acacia Homes")]
+
+MODERATORS = ["Sara"]
+
+# Photos the automatic checks flagged, waiting for a moderator. (advertiser, reason, label)
+FLAGGED = [
+    (
+        "Demo Agency: Acacia Homes",
+        "Text detected in the photo: it may show a phone number",
+        "CALL 000 000 000 FOR A DISCOUNT",
+    ),
+    (
+        "Demo Broker: Tewodros B.",
+        "Low-confidence content warning: a person may be visible",
+        "PERSON IN FRAME?",
+    ),
 ]
 
 FEATURES = [
@@ -129,8 +149,9 @@ def seed(listing_count: int = 200) -> None:
         # photos every time keeps the two in step. Files go in before the database rows are
         # committed, so no approved photo ever points at a missing file.
         count = _upload_seed_photos(session, s3, settings.photos_bucket)
+        held = _upload_flagged_photos(session, s3, settings.incoming_bucket)
         session.commit()
-        print(f"Wrote {count} placeholder photos to the photos bucket.")
+        print(f"Wrote {count} placeholder photos and {held} flagged photos.")
 
 
 def _seed_database(session, rng: random.Random, listing_count: int) -> None:
@@ -148,6 +169,18 @@ def _seed_database(session, rng: random.Random, listing_count: int) -> None:
             )
         )
         advertisers.append(advertiser)
+
+    by_name = {advertiser.name: advertiser for advertiser in advertisers}
+    for display_name, advertiser_name in AGENTS:
+        session.add(
+            User(
+                display_name=display_name,
+                role="advertiser",
+                advertiser_id=by_name[advertiser_name].id,
+            )
+        )
+    for display_name in MODERATORS:
+        session.add(User(display_name=display_name, role="moderator"))
 
     now = datetime.now(UTC)
     seekers = [
@@ -209,9 +242,31 @@ def _seed_database(session, rng: random.Random, listing_count: int) -> None:
             )
             photo_count += 1
     session.flush()
+
+    # One flagged photo per entry in FLAGGED, on that advertiser's newest approved listing.
+    for advertiser_name, reason, _label in FLAGGED:
+        listing = session.scalar(
+            select(Listing)
+            .where(Listing.advertiser_id == by_name[advertiser_name].id, Listing.status == "approved")
+            .order_by(Listing.created_at.desc())
+            .limit(1)
+        )
+        photo = Photo(
+            listing_id=listing.id,
+            object_key=f"uploads/{listing.id}/seed-flagged.svg",
+            content_type="image/svg+xml",
+            status="under_review",
+            reason=reason,
+            decided_at=now,
+        )
+        session.add(photo)
+        session.flush()
+        session.add(ReviewCase(kind="photo", photo_id=photo.id, reason=reason))
+    session.flush()
     print(
-        f"Seeded {len(advertisers)} advertisers, {len(seekers)} seekers, "
-        f"{listing_count} listings, {photo_count} photos."
+        f"Seeded {len(advertisers)} advertisers, {len(AGENTS)} agents, {len(seekers)} seekers, "
+        f"{len(MODERATORS)} moderators, {listing_count} listings, {photo_count} photos, "
+        f"{len(FLAGGED)} review cases."
     )
 
 
@@ -231,6 +286,27 @@ def _upload_seed_photos(session, s3, bucket: str) -> int:
             ContentType="image/svg+xml",
         )
     return len(rows)
+
+
+def _upload_flagged_photos(session, s3, bucket: str) -> int:
+    """Put the flagged demo photos in held/, where the real upload checks would park them."""
+    labels = {reason: label for _name, reason, label in FLAGGED}
+    photos = session.scalars(
+        select(Photo).where(Photo.object_key.like("uploads/%/seed-flagged.svg"))
+    ).all()
+    for photo in photos:
+        label = html.escape(labels.get(photo.reason, "FLAGGED"))
+        body = f"""<svg xmlns="http://www.w3.org/2000/svg" width="800" height="533" viewBox="0 0 800 533">
+<rect width="800" height="533" fill="#7a4b2a"/>
+<path d="M250 330 L400 200 L550 330 Z" fill="#ffffff" opacity="0.25"/>
+<rect x="290" y="330" width="220" height="120" fill="#ffffff" opacity="0.25"/>
+<rect x="120" y="60" width="560" height="70" rx="8" fill="#ffd34d"/>
+<text x="400" y="106" font-family="sans-serif" font-size="28" font-weight="bold" fill="#222" text-anchor="middle">{label}</text>
+<text x="400" y="500" font-family="sans-serif" font-size="18" fill="#ffffff" text-anchor="middle" opacity="0.7">Flagged demo photo · made-up data</text>
+</svg>""".encode()
+        key = "held/" + photo.object_key.removeprefix("uploads/")
+        s3.put_object(Bucket=bucket, Key=key, Body=body, ContentType="image/svg+xml")
+    return len(photos)
 
 
 if __name__ == "__main__":
